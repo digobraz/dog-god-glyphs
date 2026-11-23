@@ -56,7 +56,9 @@ const wlen = (s: string) => [...s].reduce((n, ch) => n + (/[\u2E80-\u9FFF\uAC00-
 const CAROUSEL: [string, string][] = [['map', '11-vretenica-mapa'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
 /** CLAIM 2: prvá pomoc hneď vedľa mapy = vážna stránka appky v prvom zábere (Matej 21. 11.: „doplnil mockup prvej pomoci, napr. nedýcha“).
  *  Snímka z testovacej appky /pack/sos/prva-pomoc/nedycha (390×844 @ 900 px, SK + -en). */
-const CAROUSEL_V2: [string, string][] = [['map', '11-vretenica-mapa'], ['aid', 'prva-pomoc-nedycha'], ['profile', 'B-profil-top'], ['dogid', '9-moja-svorka'], ['ainubis', 'ai-mozog'], ['feed', 'feed']];
+/* MOCKUPY 1:1 Z TELEFÓNU (Matej 23. 11.: „potrebujem aby boli 1:1 ako v telefóne“) — testovacia appka, iPhone 393×852 s okrajmi,
+   nafotené `plany/nakresy/web-mockupy-2026-11-23/fot.mjs`, súbory `app-*`. Staré snímky ostávajú pre CAROUSEL (v1). */
+const CAROUSEL_V2: [string, string][] = [['map', 'app-mapa'], ['list', 'app-mapa-zoznam'], ['aid', 'app-prva-pomoc'], ['sos', 'app-sos-panel'], ['profile', 'app-profil'], ['dogid', 'app-svorka'], ['ainubis', 'app-ainubis-mozog'], ['scroll', 'app-zvitok'], ['feed', 'app-feed']];
 
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
@@ -147,9 +149,11 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
  *  pomaly roluje — vysvedčenie je dlhé a práve tá dĺžka je pointa. Čísla sa rátajú z kurátorských trás
  *  (lazy import — 400 KB dát nesmie zaťažiť prvé načítanie stránky). */
 const TRIP_SHOTS = ['11-vretenica-mapa', 'plus-von', 'tripstats-cela'];
+const TRIP_SHOTS_V2 = ['app-mapa-bliz', 'app-mapa-pridat', 'app-tripstats'];
 function TripsSection({ c }: { c: (k: string) => string }) {
   const shot = useShot();
   const { lang } = useLang();
+  const shots = useMemo(() => (isClaim() ? TRIP_SHOTS_V2 : TRIP_SHOTS), []);
   const [ref, near] = useNear<HTMLDivElement>('400px');
   /* Mobil (pod 768 px sú kroky pod telefónom, prepínanie nevidno) začína hneď ŠTATISTIKAMI — Matej 11. 11. */
   const [step, setStep] = useState(() => (window.matchMedia('(max-width: 767px)').matches ? 2 : 0));
@@ -195,7 +199,7 @@ function TripsSection({ c }: { c: (k: string) => string }) {
             <div className="phone">
               <img className="fr" src={`${A}/phone.svg`} alt="" />
               <div className="scr">
-                {TRIP_SHOTS.map((src, i) => (
+                {shots.map((src, i) => (
                   <img loading="lazy" key={src} className={`tr-shot${i === 2 ? ' tall' : ''}${step === i ? ' on' : ''}`} src={shot(src)} alt="" decoding="async" />
                 ))}
               </div>
@@ -552,7 +556,9 @@ export default function AppWeb() {
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
         <div className="wrap split">
-          <Rv className="fresco"><img loading="lazy" src={`${A}/vyjavy/zivot-hrou.webp`} alt="" /></Rv>
+          <Rv className={`fresco${V2 ? ' has-ph' : ''}`}><img loading="lazy" src={`${A}/vyjavy/zivot-hrou.webp`} alt="" /></Rv>
+          {/* ZÁPIS DŇA v telefóne cez fresku (Matej 23. 11.: „pridať zápis obrazovka“) */}
+          {V2 && <div className="life-ph"><Tilt set="zapis" src="app-zapis" /></div>}
           <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life3')}</p>
             <h2 className={V2 ? 'v2' : undefined}><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span>{V2 && <span className="l3">{c('h_life2c')}</span>}</h2>
@@ -591,7 +597,7 @@ export default function AppWeb() {
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
             <Rv d={2} className="vs-col">
-              <Tilt set="profile" src="profil-heroglyf" />  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
+              <Tilt set="profile" src={V2 ? 'app-profil-heroglyf' : 'profil-heroglyf'} />  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
               <div className="vs-tag dg"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
             </Rv>
           </div>
@@ -777,7 +783,7 @@ export default function AppWeb() {
               <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h3 className="ai-ch">{c('lr2h')}</h3><p>{c('lr2p')}</p>
                 {/* POČÚVAJ = mockup prehrávača na celú obrazovku + 18 jazykov (Matej 23. 11.: „dáme preč 5 podcastov na vypočutie“; 18 jazykov predbieha appku, tá dnes hrá 4) */}
                 <div className="ai-listen">
-                  <div className="ai-listen-ph"><Phone src="podcast-prehravac" /></div>
+                  <div className="ai-listen-ph"><Phone src="app-podcast" /></div>
                   <div className="ai-listen-lg">
                     <p className="ai-listen-n"><b>18</b><span>{c('pod18')}</span></p>
                     <div className="ai-listen-fl">{WEB_LANGS.map((x) => <img key={x.code} className={POD_LIVE.includes(x.code) ? undefined : 'off'} loading="lazy" src={flagUrl(x.flag, 40)} alt={x.name} title={x.name} />)}</div>
@@ -839,6 +845,8 @@ export default function AppWeb() {
             <p className="lead">{c('l_play')}</p>
           </Rv>
           <Rv className="lv-h"><h3>{c('h_lv_a')} <span className="deco">{c('h_lv_b')}</span> {c('h_lv_c')}</h3></Rv>
+          {/* otvorený level UČŇA v profile (Matej 23. 11.: „detail napr. na otvorený level učňa, keď sa klikne na ikonku v profile“) */}
+          {V2 && <Rv className="lv-ph"><Tilt set="ucen" src="app-ucen" /></Rv>}
           <div className="lv3">
             {LEVELS.map((p, i) => (
               <Rv key={p.ax} d={i} className="lv pk-stage">

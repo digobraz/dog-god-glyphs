@@ -1898,3 +1898,10 @@ body:has(.aw){overflow:auto!important;overflow-x:hidden!important}
    (`.gbb-row`), stránka stojí a prst patrí len stene; von sa ide šípkou Späť. */
 html:has(.aw .planet-live.v2 .gbb-row),body:has(.aw .planet-live.v2 .gbb-row){overflow:hidden!important;overscroll-behavior:none}
 .aw .planet-live.v2:has(.gbb-row){touch-action:none}
+
+/* MOCKUPY 1:1 (23. 11. 2026): zápis dňa cez fresku Života hrou, otvorený Učeň pri leveloch */
+.aw .life .split{position:relative}
+.aw .life-ph{position:absolute;z-index:2;width:min(34%,200px);right:2%;bottom:-48px;pointer-events:auto}
+@media(min-width:900px){.aw .life-ph{width:min(22%,230px);left:calc(50% - 22% - 8px);right:auto;bottom:-64px}}
+@media(max-width:899px){.aw .life .fresco.has-ph{margin-bottom:96px}}
+.aw .lv-ph{width:min(56%,240px);margin:0 auto var(--s-xl)}
