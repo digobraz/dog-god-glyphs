@@ -12,6 +12,7 @@
 // KDE dáta ležia sa ešte môže meniť (§3 zadania — DB vs. localStorage je odložiteľný
 // swap), AKÝM TVAROM sa zapisujú nie. Preto lokálny fallback nižšie drží presne ten
 // istý append tvar ako tabuľka — pri swape sa dá naliať do DB bez straty histórie.
+import { shared, forgetShared } from '@/lib/sharedFetch';
 import { supabase } from '@/integrations/supabase/client';
 
 // `dog_events` nie je v generovanom `integrations/supabase/types.ts` — ten je zosnímaný
@@ -83,7 +84,9 @@ export function onDogEventsChange(fn: Listener): () => void {
   listeners.add(fn);
   return () => { listeners.delete(fn); };
 }
-function emitChange(): void { listeners.forEach((l) => l()); }
+// Kľúče zdieľaných čítaní `readLatest` — zápis ich zahodí, aby poslucháč po `emitChange` videl čerstvé dáta.
+const latestKeys = new Set<string>();
+function emitChange(): void { latestKeys.forEach(forgetShared); listeners.forEach((l) => l()); }
 
 // ── zápis ───────────────────────────────────────────────────────────────────
 /**
@@ -196,7 +199,14 @@ function foldLatest(rows: Array<{ field: string; value: unknown; recordedAt: str
 
 /** Posledná hodnota každého poľa jedného psa — hlavná čítacia cesta karty psa. */
 /** `strict`: chyba servera sa vyhodí (tlač a kartička nesmú ticho pracovať s neúplnými údajmi). Bez neho zostanú lokálne zápisy. */
-export async function readLatest(dogId: string, opts?: { strict?: boolean }): Promise<Record<string, LatestValue>> {
+export function readLatest(dogId: string, opts?: { strict?: boolean }): Promise<Record<string, LatestValue>> {
+  // Kolo 2 (24. 11. 2026): karta psa + panely čítajú tú istú históriu naraz = jeden dotaz na `dog_events`.
+  const key = `dog-latest:${dogId}:${opts?.strict ? 1 : 0}`;
+  latestKeys.add(key);
+  return shared(key, () => readLatestNow(dogId, opts), 2_000);
+}
+
+async function readLatestNow(dogId: string, opts?: { strict?: boolean }): Promise<Record<string, LatestValue>> {
   const local = readLocal()
     .filter((r) => r.dogId === dogId)
     .map((r) => ({ field: r.field, value: r.value, recordedAt: r.recordedAt, source: r.source }));

@@ -386,8 +386,15 @@ export default function PackDogDetail() {
         setStatus('ready');
         return;
       }
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // Kolo 2 (24. 11. 2026): `getSession()` (uložená session) namiesto `getUser()` — ten čaká na zámok tokenu
+      // a sieť; pri súbežnom obnovení tokenu viselo „RECALCULATING" ~4,5 s bez jediného volania.
+      // `if (!user) return` navyše nechalo loader navždy, keď session chýbala → teraz chyba, nie večné načítavanie.
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const user = authSession?.user;
+      if (!user) {
+        if (mounted) { setErrorMsg('Not authenticated'); setStatus('error'); }
+        return;
+      }
 
       // ── B3c: ČÍTANIE detailu sa pýta PRÁV, zápisy nižšie NIE ──────────────
       // ⚠️ Tento súbor má `.eq('user_id', …)` ŠTYRIKRÁT, ale len TOTO je čítanie.

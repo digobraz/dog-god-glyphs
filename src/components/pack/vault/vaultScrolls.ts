@@ -174,18 +174,27 @@ function loadScrolls(): Promise<DemoScroll[]> {
   }
   return loading;
 }
-export function useDemoScrolls(): DemoScroll[] {
+/** `enabled=false` = dotaz sa nespustí (feed ho zapne, až keď sú zvitky blízko zornému poľu). Chyba/500 = tichý retry s odstupom, zoznam z úložiska ostáva. */
+export function useDemoScrolls(enabled = true): DemoScroll[] {
   const [list, setList] = useState<DemoScroll[]>(cache || []);
   useEffect(() => {
-    if (cache) return;
+    if (cache || !enabled) return;
     let on = true;
-    const load = () => { void loadScrolls().then((l) => { if (on && l.length) setList(l); }); };
+    let retry: number | undefined;
+    let tries = 0;
+    const load = () => {
+      void loadScrolls().then((l) => {
+        if (!on) return;
+        if (l.length) { setList(l); return; }
+        if (tries < 3) retry = window.setTimeout(load, [2500, 6000, 15000][tries++]);
+      });
+    };
     load();
     const { data: sub } = supabase.auth.onAuthStateChange((ev) => {
       if (!cache && (ev === 'SIGNED_IN' || ev === 'TOKEN_REFRESHED' || ev === 'INITIAL_SESSION')) load();
     });
-    return () => { on = false; sub.subscription.unsubscribe(); };
-  }, []);
+    return () => { on = false; if (retry) window.clearTimeout(retry); sub.subscription.unsubscribe(); };
+  }, [enabled]);
   return list;
 }
 

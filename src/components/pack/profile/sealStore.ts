@@ -12,6 +12,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { hasSession } from '@/lib/hasSession';
+import { shared } from '@/lib/sharedFetch';
 import type { SealTier } from './dogSeal';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +48,8 @@ async function flush() {
   mineAsked = true;
   try {
     if (!(await hasSession())) { off = true; return; }
-    const { data, error } = await db.rpc('seals_for', { p_numbers: ns, p_dogs: ds });
+    // Kolo 2 (24. 11. 2026): rovnaká dvojica zoznamov z dvoch dávok = jedno volanie.
+    const { data, error } = await shared(`seals:${[...ns].sort().join(',')}|${[...ds].sort().join(',')}`, () => db.rpc('seals_for', { p_numbers: ns, p_dogs: ds }) as Promise<{ data: any; error: any }>, 3_000);
     if (error || !data) { off = true; return; }
     const me = asTier(data.me);
     if (me) mine = me;

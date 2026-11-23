@@ -743,6 +743,7 @@ export function dogCardCompletion(card: DogCard): { filled: number; total: numbe
 //     ležia v ich prehliadačoch a bez presypania by sa prepnutím stratili.
 // Autorita je server: čo príde z DB, prepíše vyrovnávaciu pamäť.
 import { supabase } from '@/integrations/supabase/client';
+import { forgetShared } from '@/lib/sharedFetch';
 
 // `pack_profiles` / `dog_profiles` nie sú v generovanom `types.ts` (generuje ho
 // Lovable a prepisuje si ho sám — CLAUDE.md). Rovnaký únik ako v `mapNotesData.ts`
@@ -929,6 +930,12 @@ export async function getProfile(): Promise<CentralProfile> {
 //    stav, ktorý predošlý zapísal. (Medzi zariadeniami to nerieši; tam by trebalo RPC `jsonb ||`.)
 let humanQueue: Promise<unknown> = Promise.resolve();
 
+/** Rovnosť hodnôt bez časovej pečiatky `at` (JSON porovnanie; kľúče z jedného zdroja majú rovnaké poradie). */
+function sameIgnoringAt(a: unknown, b: unknown): boolean {
+  const strip = (_k: string, v: unknown) => (_k === 'at' ? undefined : v);
+  return JSON.stringify(a, strip) === JSON.stringify(b, strip);
+}
+
 export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnError?: boolean }): Promise<CentralProfile> {
   const cur = readRaw();
   const next: CentralProfile = { ...cur, human: { ...cur.human, ...patch }, updatedAt: new Date().toISOString() };
@@ -954,8 +961,17 @@ export async function saveHuman(patch: Partial<HumanProfile>, opts?: { throwOnEr
       }
       const serverHuman = (row as { human?: Record<string, unknown> } | null)?.human;
       const merged = serverHuman ? { ...serverHuman, ...patch } : (next.human as unknown as Record<string, unknown>);
+      // Kolo 2 (24. 11. 2026): zverejňovače (pilgrim/stats/learner) píšu pri načítaní profilu; keď server už
+      // má tie isté hodnoty (okrem časovej pečiatky `at`), zápis je zbytočný — preskoč upsert.
+      if (serverHuman && Object.keys(patch).every((k) => sameIgnoringAt((serverHuman as Record<string, unknown>)[k], (patch as Record<string, unknown>)[k]))) {
+        const synced: CentralProfile = { ...next, human: { ...next.human, ...(serverHuman as Partial<HumanProfile>) } };
+        writeRaw(synced);
+        emitChange();
+        return synced;
+      }
       const { error } = await db.from('pack_profiles')
         .upsert({ user_id: uid, human: merged }, { onConflict: 'user_id' });
+      forgetShared('human-read');
       if (error && opts?.throwOnError) throw error;
       if (!error && serverHuman) {
         const synced: CentralProfile = { ...next, human: { ...next.human, ...(merged as Partial<HumanProfile>) } };

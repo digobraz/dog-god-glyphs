@@ -4,6 +4,7 @@
 // Blok žije v tej istej tabuľke `pack_blocks` ako blok v správach. Skrytie príspevkov je klientske.
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { shared, forgetShared } from '@/lib/sharedFetch';
 
 const db = supabase as any;
 const CHANGED = 'dogypt:blocks-changed';
@@ -14,6 +15,7 @@ let cache: Set<number> | null = null;
 export async function blockMember(ownerN: number, block: boolean): Promise<boolean> {
   const { data, error } = await db.rpc('block_member', { p_owner_n: ownerN, p_block: block });
   if (error) throw error;
+  forgetShared('my-blocked-owners');
   const on = Boolean(data);
   const next = new Set(cache ?? []);
   if (on) next.add(ownerN); else next.delete(ownerN);
@@ -22,11 +24,14 @@ export async function blockMember(ownerN: number, block: boolean): Promise<boole
   return on;
 }
 
-export async function fetchBlockedOwners(): Promise<Set<number>> {
-  const { data, error } = await db.rpc('my_blocked_owners');
-  if (error) throw error;
-  cache = new Set(((data ?? []) as Array<{ owner_n: number }>).map((r) => Number(r.owner_n)));
-  return cache;
+// Kolo 2 (24. 11. 2026): viac čitateľov naraz (správy, feed, profil) = jedno `my_blocked_owners`.
+export function fetchBlockedOwners(): Promise<Set<number>> {
+  return shared('my-blocked-owners', async () => {
+    const { data, error } = await db.rpc('my_blocked_owners');
+    if (error) throw error;
+    cache = new Set(((data ?? []) as Array<{ owner_n: number }>).map((r) => Number(r.owner_n)));
+    return cache;
+  });
 }
 
 /** Čísla majiteľov, ktorých som zablokoval. Kým server neodpovie (alebo nemá migráciu), je zoznam prázdny. */

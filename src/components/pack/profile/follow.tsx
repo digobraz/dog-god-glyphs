@@ -8,6 +8,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { shared, forgetShared } from '@/lib/sharedFetch';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_BOX, MEDALLION_CSS, FONT_UI, FONT_TITLE } from '@/components/pack/packTheme';
 import { LAPIS, LAPIS_BTN_SHADOW, PICK_INK, pickTintCSS } from '@/components/pack/navGoldSkin';
@@ -20,15 +21,19 @@ const S = PACK_SPACE;
 export type FollowKind = 'followers' | 'following';
 export interface FollowInfo { followers: number; following: number; iFollow: boolean; isMe: boolean }
 
-export async function fetchFollowInfo(packNumber: number | null): Promise<FollowInfo | null> {
-  const { data, error } = await db.rpc('get_follow_info', { p_pack_number: packNumber });
-  if (error || !data) return null;
-  return { followers: data.followers ?? 0, following: data.following ?? 0, iFollow: !!data.i_follow, isMe: !!data.is_me };
+export function fetchFollowInfo(packNumber: number | null): Promise<FollowInfo | null> {
+  // Kolo 2 (24. 11. 2026): ten istý autor z viacerých miest naraz = jedno volanie; po vlastnom zápise sa zahodí.
+  return shared(`follow-info:${packNumber ?? 'me'}`, async () => {
+    const { data, error } = await db.rpc('get_follow_info', { p_pack_number: packNumber });
+    if (error || !data) return null;
+    return { followers: data.followers ?? 0, following: data.following ?? 0, iFollow: !!data.i_follow, isMe: !!data.is_me } as FollowInfo;
+  }, 3_000);
 }
 
 /** Vráti výsledný stav (true = sledujem) alebo null, keď sa to nedá (zablokovaný, neplatiaci, sám seba). */
 export async function setFollow(packNumber: number, on: boolean): Promise<boolean | null> {
   const { data, error } = await db.rpc('follow_member', { p_pack_number: packNumber, p_on: on });
+  forgetShared(`follow-info:${packNumber}`); forgetShared('follow-info:me');
   if (error) return null;
   return data as boolean | null;
 }

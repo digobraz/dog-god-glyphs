@@ -2,6 +2,7 @@ import { SysIcon } from '@/components/pack/SysIcon';
 import { APP_NEW } from '@/lib/packFlags';
 import { DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { readHuman, patchHuman, notifOff, devotionTimes } from '@/lib/humanPrefs';
+import { forgetShared } from '@/lib/sharedFetch';
 import { clearPushGeo } from '@/lib/appPushGeo';
 import { useEffect, useState } from 'react';
 import { forgetPushToken } from '@/lib/appPush';
@@ -122,15 +123,8 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
   useEffect(() => {
     let zrusene = false;
     (async () => {
-      const { data } = await supabase.auth.getSession();
-      const uid = data.session?.user?.id;
+      const { uid, human } = await readHuman();
       if (!uid || zrusene) return;
-      const { data: row } = await supabase
-        .from('pack_profiles' as never)
-        .select('human')
-        .eq('user_id', uid)
-        .maybeSingle();
-      const human = ((row as { human?: Record<string, unknown> } | null)?.human ?? {});
       if (!zrusene) setNotifOn(human.notifications_enabled !== false);
     })();
     return () => { zrusene = true; };
@@ -156,6 +150,7 @@ export function PackSettings({ bare = false, after }: { bare?: boolean; after?: 
       const { error } = await supabase
         .from('pack_profiles' as never)
         .upsert({ user_id: uid, human } as never, { onConflict: 'user_id' });
+      forgetShared('human-read');
       if (error) throw error;
     } catch {
       setNotifOn(predtym);         // vrátiť späť: tichý neúspech by klamal o stave pošty

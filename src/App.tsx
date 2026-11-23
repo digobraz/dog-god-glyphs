@@ -350,7 +350,19 @@ function PackGate() {
 /** Brána zmazania účtu len na /pack — inde (film, heroflow) sa Supabase klient nesťahuje. */
 function OnPackDeletionGate() {
   const { pathname } = useLocation();
-  return /^\/pack(\/|$)/.test(pathname) ? <QuietSuspense><AccountDeletionGate /><PawmateDepartureGate /></QuietSuspense> : null;
+  // Brány nie sú na prvý obraz: spúšťajú sa v idle okne (fallback 1,5 s), správanie bran ostáva.
+  const [idle, setIdle] = useState(false);
+  useEffect(() => {
+    if (idle) return;
+    const ric = (window as unknown as { requestIdleCallback?: (f: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (n: number) => void });
+    if (ric.requestIdleCallback) {
+      const h = ric.requestIdleCallback(() => setIdle(true), { timeout: 1500 });
+      return () => ric.cancelIdleCallback?.(h);
+    }
+    const t = window.setTimeout(() => setIdle(true), 1500);
+    return () => window.clearTimeout(t);
+  }, [idle]);
+  return idle && /^\/pack(\/|$)/.test(pathname) ? <QuietSuspense><AccountDeletionGate /><PawmateDepartureGate /></QuietSuspense> : null;
 }
 
 function RefCapture() {

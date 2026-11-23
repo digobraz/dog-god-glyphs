@@ -36,6 +36,7 @@
    úloha, keď bude migrácia aj na LIVE. */
 import { trackPack } from './packAnalytics';
 import { supabase } from '@/integrations/supabase/client';
+import { shared } from './sharedFetch';
 import { uploadPackTripPhoto } from '@/services/cloudinaryService';
 import { takeUploadBlob } from '@/components/pack/addtrip/photoOptimize';
 import { withStorageRoom } from './storageGuard';
@@ -959,7 +960,7 @@ export function hydratePackStore(): Promise<boolean> {
         // Len podpis riadkov, nie payload — plné výlety (423 KB, z toho trasa 263 KB) sa
         // stiahnu nižšie iba pri zmene. Egress Supabase Free 5. 11. 2026, viď TRIPS_SIG_KEY.
         (supabase as any).from('pack_trips').select('slug,status,author_id,reviewed_at'),
-        (supabase as any).from('hero_badges_earned').select('badge_id,earned_at'),
+        shared('hero-badges-earned', () => Promise.resolve((supabase as any).from('hero_badges_earned').select('badge_id,earned_at')), 3_000),
         // PSIE VÝLETY (B20) — bez `.eq('user_id', uid)`: RLS pustí aj psa, pri ktorom
         // som pawmate, a jeho výlety patria do psieho profilu rovnako ako moje.
         (supabase as any).from('dog_trips').select('dog_id,trip_slug'),

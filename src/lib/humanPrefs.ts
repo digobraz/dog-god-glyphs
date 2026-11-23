@@ -2,10 +2,12 @@
 // Zapisuje sa CELÝ `human` so zmenou, inak by upsert prepísal meno svorky a prezývku
 // (vzor PackSettings `prepniNotifikacie`). Nové miesto na údaje o človeku nevzniká.
 import { supabase } from '@/integrations/supabase/client';
+import { shared, forgetShared } from '@/lib/sharedFetch';
 
 export type Human = Record<string, unknown>;
 
-export async function readHuman(): Promise<{ uid: string | null; human: Human }> {
+// Kolo 2 (24. 11. 2026): úprava profilu čítala `human` 5× (každá sekcia sama) — teraz jedno čítanie na 2 s.
+const readHumanNow = async (): Promise<{ uid: string | null; human: Human }> => {
   const { data } = await supabase.auth.getSession();
   const uid = data.session?.user?.id ?? null;
   if (!uid) return { uid: null, human: {} };
@@ -15,15 +17,21 @@ export async function readHuman(): Promise<{ uid: string | null; human: Human }>
     .eq('user_id', uid)
     .maybeSingle();
   return { uid, human: ((row as { human?: Human } | null)?.human ?? {}) };
+};
+
+export function readHuman(): Promise<{ uid: string | null; human: Human }> {
+  return shared('human-read', readHumanNow, 2_000);
 }
 
 export async function patchHuman(patch: Human): Promise<Human> {
+  forgetShared('human-read'); // zápis stavia na ČERSTVOM stave, nie na zdieľanom čítaní
   const { uid, human } = await readHuman();
   if (!uid) throw new Error('no session');
   const next = { ...human, ...patch };
   const { error } = await supabase
     .from('pack_profiles' as never)
     .upsert({ user_id: uid, human: next } as never, { onConflict: 'user_id' });
+  forgetShared('human-read');
   if (error) throw error;
   return next;
 }

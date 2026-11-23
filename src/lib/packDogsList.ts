@@ -6,6 +6,7 @@
 // `my_dog_rights()`, pri zlyhaní vlastníctvo, len `paid`) sa NEOPISUJE do druhej
 // obrazovky — dve kópie by sa rozišli pri prvej úprave (CLAUDE.md, identita).
 // ════════════════════════════════════════════════════════════════════════════
+import { shared } from '@/lib/sharedFetch';
 import { supabase } from '@/integrations/supabase/client';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { getAccessibleDogIds } from '@/lib/dogRights';
@@ -27,7 +28,12 @@ export function peekPackDogs<T>(select: string): T[] | null {
   return (last.get(select) as T[] | undefined) ?? null;
 }
 
-export async function loadPackDogs<T>(select: string): Promise<T[]> {
+// Kolo 2 (24. 11. 2026): viac čitateľov toho istého `select` naraz (lišta, hub, detail) = jeden dotaz na `dogs`.
+export function loadPackDogs<T>(select: string): Promise<T[]> {
+  return shared(`pack-dogs:${select}`, () => loadPackDogsNow<T>(select), 2_000);
+}
+
+async function loadPackDogsNow<T>(select: string): Promise<T[]> {
   // `getSession()`, nie `getUser()`: uid stačí z uloženej session — `getUser()` je vždy
   // jedna cesta na auth server navyše, a stála NA ZAČIATKU reťaze (uid → práva → psy).
   // Prístup aj tak stráži RLS podľa tokenu, nie toto uid.

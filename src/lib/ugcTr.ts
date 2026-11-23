@@ -24,6 +24,7 @@ const cache = new Map<string, Map<string, string | null>>();
 const queued = new Map<string, Set<string>>();
 const listeners = new Set<() => void>();
 let timer: number | null = null;
+let firstFlushDone = false;
 
 // ── TRVALÁ PAMÄŤ (audit 14. 11. 2026) ────────────────────────────────────────────────────────
 // Pamäť do zatvorenia appky znamenala volanie `translate-ugc` pri každom spustení. Preklady sa
@@ -97,7 +98,15 @@ function request(lang: string, key: string, original: string) {
   let q = queued.get(lang);
   if (!q) { q = new Set(); queued.set(lang, q); }
   q.add(key);
-  if (timer == null) timer = window.setTimeout(() => { void flush(); }, 30);
+  // Dávkovanie po prvom vykreslení (kolo 2, 24. 11. 2026): prvý obraz nečaká na `translate-ugc`; zlieva sa celá dávka v idle okne (max 1,5 s), ďalšie už po 30 ms.
+  if (timer == null) {
+    const run = () => { void flush(); };
+    if (!firstFlushDone && 'requestIdleCallback' in window) {
+      firstFlushDone = true;
+      timer = window.requestIdleCallback(run, { timeout: 1500 }) as unknown as number;
+    } else timer = window.setTimeout(run, firstFlushDone ? 30 : 600);
+    firstFlushDone = true;
+  }
 }
 
 /** Text od člena v jazyku appky. `skip` = vlastný text (ten sa neprekladá, ako na IG). */
