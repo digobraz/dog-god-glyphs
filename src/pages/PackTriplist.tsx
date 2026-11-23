@@ -67,6 +67,7 @@ import { PackTopRow } from '@/components/pack/PackTopRow';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { fetchMyWishes, type MyWish } from '@/components/pack/mapnotes/wishData';
 import { fetchSavedVets } from '@/components/geo/savedPlaces';
+import { shared } from '@/lib/sharedFetch';
 import { clinicPath, type MapVet } from '@/lib/clinics';
 import { useSosT } from '@/components/pack/sos/sosShared';
 import { WISHES_LIVE, APP_NEW } from '@/lib/packFlags';
@@ -807,7 +808,8 @@ export default function PackTriplist() {
   useEffect(() => {
     if (mg) return;
     let alive = true;
-    fetchSavedVets().then((v) => { if (alive) setSavedPlaces(v); }).catch(() => {});
+    // `storeEpoch` sa pri hydratácii zmení hneď po mounte — okno 1,5 s zlúči dva dotazy na `feed_marks` do jedného.
+    shared('saved-vets', fetchSavedVets, 1_500).then((v) => { if (alive) setSavedPlaces(v); }).catch(() => {});
     return () => { alive = false; };
   }, [storeEpoch]); // eslint-disable-line react-hooks/exhaustive-deps
 

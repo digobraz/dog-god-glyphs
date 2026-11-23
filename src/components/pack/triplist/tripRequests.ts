@@ -18,6 +18,7 @@
 // `pairPending()` na konci súboru.
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { forgetShared, shared } from '@/lib/sharedFetch';
 import type { PartyMember } from './useTripParty';
 
 export type TripRequestStatus = 'requested' | 'accepted' | 'declined' | 'left';
@@ -45,6 +46,7 @@ export const requestKey = (slug: string, organizerId: string) => `${slug}|${orga
  * @returns null pri úspechu, inak text chyby (UI ho ukáže pri karte)
  */
 export async function requestToJoin(tripSlug: string, organizerId: string): Promise<string | null> {
+  forgetShared('trip-requests-rows');
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user?.id;
   if (!uid) return 'You need to be signed in.';
@@ -77,6 +79,7 @@ export async function requestToJoin(tripSlug: string, organizerId: string): Prom
 
 /** Organizátor rozhodne o žiadosti. Riadok sa adresuje `id` — to je jediné, čo o cudzom človeku vieme. */
 export async function decideRequest(id: string, status: 'accepted' | 'declined'): Promise<string | null> {
+  forgetShared('trip-requests-rows');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any).from('trip_requests')
     .update({ status, decided_at: new Date().toISOString() })
@@ -86,6 +89,7 @@ export async function decideRequest(id: string, status: 'accepted' | 'declined')
 
 /** Odvolať vlastnú žiadosť / odísť z výletu (policy `trip_requests_withdraw`, iba `left`). */
 export async function leaveTrip(tripSlug: string, organizerId: string): Promise<string | null> {
+  forgetShared('trip-requests-rows');
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user?.id;
   if (!uid) return 'You need to be signed in.';
@@ -97,21 +101,36 @@ export async function leaveTrip(tripSlug: string, organizerId: string): Promise<
   return error ? error.message : null;
 }
 
+type RequestRow = { id: string; trip_slug: string; organizer_id: string; from_user_id: string; status: TripRequestStatus; created_at: string };
+
+/** Moje odoslané aj prijaté žiadosti JEDNÝM dotazom (detail výletu ich pýtal 2×: `useMyRequests` + `useIncomingRequests`).
+ *  Okno 2 s zlúči oba hooky aj dvojitý epoch po hydratácii; zápis ho zahodí (`forgetShared`). `null` = bez prihlásenia. */
+async function loadRequestRows(): Promise<{ uid: string; rows: RequestRow[] } | null> {
+  const { data: sess } = await supabase.auth.getSession();
+  const uid = sess.session?.user?.id;
+  if (!uid) return null;
+  const run = () => shared('trip-requests-rows', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).from('trip_requests')
+      .select('id,trip_slug,organizer_id,from_user_id,status,created_at')
+      .or(`from_user_id.eq.${uid},and(organizer_id.eq.${uid},status.eq.requested)`)
+      .order('created_at', { ascending: true }) as { data: RequestRow[] | null; error: unknown };
+    if (error || !data) throw new Error('trip_requests');
+    return { uid, rows: data };
+  }, 2_000);
+  let res = await run().catch(() => null);
+  if (res && res.uid !== uid) { forgetShared('trip-requests-rows'); res = await run().catch(() => null); } // iný účet v okne
+  return res ?? { uid, rows: [] };
+}
+
 /** Moje odoslané žiadosti → stav tlačidla na karte cudzieho výletu. Kľúč = `requestKey`. */
 export function useMyRequests(epoch = 0): Record<string, TripRequestStatus> {
   const [map, setMap] = useState<Record<string, TripRequestStatus>>({});
 
   const load = useCallback(async () => {
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user?.id;
-    if (!uid) { setMap({}); return; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any).from('trip_requests')
-      .select('trip_slug,organizer_id,status')
-      .eq('from_user_id', uid) as
-      { data: { trip_slug: string; organizer_id: string; status: TripRequestStatus }[] | null; error: unknown };
-    if (error || !data) { setMap({}); return; }
-    setMap(Object.fromEntries(data.map((r) => [requestKey(r.trip_slug, r.organizer_id), r.status])));
+    const res = await loadRequestRows();
+    if (!res) { setMap({}); return; }
+    setMap(Object.fromEntries(res.rows.filter((r) => r.from_user_id === res.uid).map((r) => [requestKey(r.trip_slug, r.organizer_id), r.status])));
   }, []);
 
   useEffect(() => { void load(); }, [load, epoch]);
@@ -127,19 +146,11 @@ export function useIncomingRequests(epoch = 0): { bySlug: Record<string, Incomin
   const [bySlug, setBySlug] = useState<Record<string, IncomingRequest[]>>({});
 
   const load = useCallback(async () => {
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user?.id;
-    if (!uid) { setBySlug({}); return; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase as any).from('trip_requests')
-      .select('id,trip_slug,from_user_id,created_at')
-      .eq('organizer_id', uid)
-      .eq('status', 'requested')
-      .order('created_at', { ascending: true }) as
-      { data: { id: string; trip_slug: string; from_user_id: string; created_at: string }[] | null; error: unknown };
-    if (error || !data) { setBySlug({}); return; }
+    const res = await loadRequestRows();
+    if (!res) { setBySlug({}); return; }
     const grouped: Record<string, IncomingRequest[]> = {};
-    for (const r of data) {
+    for (const r of res.rows) {
+      if (r.organizer_id !== res.uid || r.status !== 'requested') continue;
       (grouped[r.trip_slug] ??= []).push({
         id: r.id, tripSlug: r.trip_slug, fromUserId: r.from_user_id, createdAt: r.created_at,
       });

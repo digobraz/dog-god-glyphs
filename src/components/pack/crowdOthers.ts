@@ -17,6 +17,7 @@
 // ============================================================================
 import { useSyncExternalStore } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { shared } from '@/lib/sharedFetch';
 import { hasSession } from '@/lib/hasSession';
 import type { Crowd, Difficulty, Hazard } from './packCommunity';
 
@@ -44,7 +45,10 @@ export function refreshCrowdOthers(): Promise<void> {
   loading = (async () => {
     try {
       if (!(await hasSession())) return; // anonym: RPC je len pre členov (hasSession.ts)
-      const { data, error } = await db.rpc('trip_crowd');
+      // Detail výletu volal `trip_crowd` 2× (optimalizácia 24. 11. 2026): prvé načítanie zo `subscribe` a po hydratácii
+      // hlasov (`setVotes(readVotes())`) ešte raz po 1,5 s z `useEffect([votes])`. Okno 4 s ich zlúči; skutočný hlas
+      // neskôr ide na sieť ako predtým.
+      const { data, error } = await shared<{ data: unknown; error: unknown }>('trip-crowd', () => db.rpc('trip_crowd'), 4_000);
       if (error || !Array.isArray(data)) return;
       const next = new Map<string, CrowdOthers>();
       for (const r of data) {

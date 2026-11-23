@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import { supabase } from '@/integrations/supabase/client';
-import { getUserShared } from '@/lib/sharedFetch';
+import { getUserShared, shared } from '@/lib/sharedFetch';
 import { getAccessibleDogIds } from '@/lib/dogRights';
 
 export interface PackDogFull {
@@ -182,6 +182,12 @@ function writeStoredUser(uid: string, { loading: _l, ...data }: PackUserData) {
 
 /** Zaplatení psi, ku ktorým má človek prístup (B3c — práva, pri zlyhaní RPC vlastníctvo). */
 async function loadDogs(uid: string): Promise<PackDogFull[] | null> {
+  // Audit LIVE 23. 11. 2026: domov robil dotaz na `dogs` 2× (tu a v usePackIdentity). Zdieľaný sľub 30 s;
+  // usePackIdentity berie ten istý cez `loadUserDogsShared` (iné stĺpce = podmnožina tohto zoznamu).
+  return shared(`user-dogs:${uid}`, () => loadDogsRaw(uid), 30_000);
+}
+export const loadUserDogsShared = loadDogs;
+async function loadDogsRaw(uid: string): Promise<PackDogFull[] | null> {
   const ids = await getAccessibleDogIds();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let dogsQuery = (supabase as any)

@@ -16,6 +16,7 @@
 //    (Cudzie PRÍSPEVKY a fotka autora výletu prišli 26. 10. 2026 — `useFeedPosts`, `useTripAuthors` nižšie.)
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { getUserShared } from '@/lib/sharedFetch';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { onPostsChanged, type MePost } from '@/components/pack/profile/mePosts';
 import { readLocalTrails, visibleLocalTrails } from '@/components/pack/tripShared';
@@ -249,10 +250,15 @@ export function useFeedMarks(): FeedMarks {
   const asked = useRef<Set<string>>(new Set());
   const local = useRef<Set<string>>(readLocal());
 
-  const want = useCallback((targets: string[]) => {
-    const fresh = targets.filter((x) => !asked.current.has(x));
-    if (!fresh.length || !server) return;
-    fresh.forEach((x) => asked.current.add(x));
+  // Audit LIVE 23. 11. 2026: domov volal `feed_social` 3× — ciele prichádzali vo vlnách (výlety z úložiska, príspevky zo servera,
+  // citát) a každá vlna šla sama. Vlny do 80 ms sa zlepia do JEDNÉHO volania (rovnaký vzor ako `fetchPostSocial`).
+  const pending = useRef<string[]>([]);
+  const timer = useRef<number | null>(null);
+  const flush = useCallback(() => {
+    timer.current = null;
+    const fresh = [...new Set(pending.current)];
+    pending.current = [];
+    if (!fresh.length) return;
     const run = (attempt: number) => void db.rpc('feed_social', { p_targets: fresh }).then(({ data, error }: { data: Array<FeedSoc & { target: string }> | null; error: { code?: string } | null }) => {
       if (error) {
         // LOKÁLNY REŽIM len keď funkcia na serveri naozaj NIE JE (42883 Postgres, PGRST202 PostgREST). Každé iné zlyhanie
@@ -270,7 +276,15 @@ export function useFeedMarks(): FeedMarks {
       });
     });
     run(0);
-  }, [server]);
+  }, []);
+  useEffect(() => () => { if (timer.current != null) window.clearTimeout(timer.current); }, []);
+  const want = useCallback((targets: string[]) => {
+    const fresh = targets.filter((x) => !asked.current.has(x));
+    if (!fresh.length || !server) return;
+    fresh.forEach((x) => asked.current.add(x));
+    pending.current.push(...fresh);
+    if (timer.current == null) timer.current = window.setTimeout(flush, 80);
+  }, [server, flush]);
 
   const get = useCallback((target: string): FeedSoc => {
     if (server) return soc.get(target) ?? NONE;
@@ -300,7 +314,7 @@ export function useFeedMarks(): FeedMarks {
     });
     apply(on);
     void (async () => {
-      const { data: auth } = await supabase.auth.getUser();
+      const { data: auth } = await getUserShared();
       const uid = auth.user?.id;
       if (!uid) { apply(!on); return; }
       const { error } = on
@@ -469,17 +483,21 @@ export function useTripAuthors(slugs: string[]): Map<string, TripAuthor> {
   const asked = useRef<Set<string>>(new Set());
   const key = slugs.join('|');
   useEffect(() => {
-    const fresh = slugs.filter((x) => !asked.current.has(x)).slice(0, 200);
-    if (!fresh.length) return;
-    fresh.forEach((x) => asked.current.add(x));
-    void db.rpc('feed_trip_authors', { p_slugs: fresh }).then(({ data, error }: { data: Array<{ slug: string; first_name: string | null; photo: string | null; owner_n: number | null }> | null; error: unknown }) => {
-      if (error) return;
-      setMap((prev) => {
-        const next = new Map(prev);
-        for (const r of data ?? []) next.set(r.slug, { photo: r.photo, ownerN: r.owner_n, name: r.first_name?.trim() || null });
-        return next;
+    // Audit 23. 11. 2026: `feed_trip_authors` 2× na domove (slugy prichádzali vo vlnách). Vlny do 80 ms = jedno volanie.
+    const t = window.setTimeout(() => {
+      const fresh = slugs.filter((x) => !asked.current.has(x)).slice(0, 200);
+      if (!fresh.length) return;
+      fresh.forEach((x) => asked.current.add(x));
+      void db.rpc('feed_trip_authors', { p_slugs: fresh }).then(({ data, error }: { data: Array<{ slug: string; first_name: string | null; photo: string | null; owner_n: number | null }> | null; error: unknown }) => {
+        if (error) return;
+        setMap((prev) => {
+          const next = new Map(prev);
+          for (const r of data ?? []) next.set(r.slug, { photo: r.photo, ownerN: r.owner_n, name: r.first_name?.trim() || null });
+          return next;
+        });
       });
-    });
+    }, 80);
+    return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   return map;

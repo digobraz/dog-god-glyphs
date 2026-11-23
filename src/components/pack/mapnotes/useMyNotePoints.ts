@@ -13,7 +13,7 @@
 // Od B2 (15. 11. 2026) sa pýta `list_map_notes(p_only_mine)` — len moje značky s príznakom `isMine`.
 import { useEffect, useState } from 'react';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
-import { fetchMapNotes, type MapNote } from './mapNotesData';
+import { fetchMapNotes, forgetAllNotes, recentAllNotes, type MapNote } from './mapNotesData';
 import { nearestTrailId } from './mapNotesGeo';
 import { noteScoreFor } from '@/lib/tripPoints';
 
@@ -31,13 +31,17 @@ let inflight: Promise<MapNote[]> | null = null;
 export function invalidateMyNotePoints(): void {
   cache = null;
   inflight = null;
+  forgetAllNotes();
 }
 
 /** Zdieľané načítanie MOJICH značiek pre level (celú vrstvu číta `useMapNotes`, nie toto). */
 export async function loadNotes(): Promise<MapNote[]> {
   if (cache) return cache;
   if (!inflight) {
-    inflight = fetchMapNotes(undefined, true) // B2: stačia moje značky, nie celá vrstva
+    // Mapa a článok výletu si čoskoro po sebe pýtajú aj CELÚ vrstvu (`useMapNotes`) — moje značky sú v nej s `isMine`,
+    // takže druhý `list_map_notes` netreba (24. 11. 2026). Bez nej (profil, level) ide ako predtým len `p_only_mine`.
+    const all = recentAllNotes();
+    inflight = (all ? all.then((n) => n.filter((x) => x.isMine)) : fetchMapNotes(undefined, true)) // B2: stačia moje značky, nie celá vrstva
       .then((n) => { cache = n; return n; })
       // Zlyhanie = nula bodov navyše, nie rozbitý level. Rovnaké pravidlo ako v `useMapNotes`:
       // odkazy sú doplnok, ich výpadok nesmie zhodiť povrch, ktorý ich len pripočítava.

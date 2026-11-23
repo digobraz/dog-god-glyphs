@@ -25,6 +25,11 @@ export function shared<T>(key: string, run: () => Promise<T>, ttl = TTL_MS): Pro
   return p;
 }
 
+/** Zahodí zdieľaný sľub pod kľúčom — volaj po zápise, po ktorom musí ďalší čitateľ ísť na sieť. */
+export function forgetShared(key: string): void {
+  cache.delete(key);
+}
+
 // B2 (audit záťaže 15. 11. 2026): 5 s okno stačilo len na „dvaja naraz", nie na návštevu —
 // pri prechádzke appkou išlo `get-pack-stats` 10× a `get_or_create_my_affiliate` 10× za 5 minút.
 // Verejné čísla svorky sa menia raz za pár minút, BONES po pozvánke či výlete — preto 2 min / 1 min.

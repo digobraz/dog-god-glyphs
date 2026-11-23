@@ -19,6 +19,7 @@ import { countryISO2 } from '@/lib/countryGeo';
 import { distM } from '@/components/pack/addtrip/builtUpCheck';
 import { trackPack } from '@/lib/packAnalytics';
 import { DEV_NOAUTH } from './devMockNotes';
+import { forgetShared, shared } from '@/lib/sharedFetch';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
@@ -145,6 +146,7 @@ const WISHES_COPY = 'map-wishes-v1';
 export const readStoredWishPins = () => readDeviceCopy<WishPin[]>(WISHES_COPY);
 
 export async function addWishPin(n: NewWish): Promise<string> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) return mockAdd(n);
   const { data, error } = await db.rpc('add_wish_pin', {
     p_lat: n.lat, p_lon: n.lon, p_place_name: n.placeName, p_trip_kind: n.tripKind,
@@ -158,6 +160,7 @@ export async function addWishPin(n: NewWish): Promise<string> {
 
 /** CHCEM TIEŽ — vznikne VLASTNÁ kópia (miesto + druh), termín si človek volí sám. */
 export async function meTooWish(sourceId: string, when: WishWhen): Promise<string> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) {
     const src = mockRead().find((w) => w.id === sourceId);
     if (!src) throw new Error('not_found');
@@ -171,6 +174,7 @@ export async function meTooWish(sourceId: string, when: WishWhen): Promise<strin
 }
 
 export async function cancelWishPin(id: string): Promise<void> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) { mockWrite(mockRead().filter((w) => w.id !== id)); return; }
   const { data, error } = await db.rpc('cancel_wish_pin', { p_id: id });
   if (error) throw error;
@@ -224,7 +228,8 @@ export async function fetchMyWishes(): Promise<MyWish[]> {
       expiresAt: w.expiresAt, postponed: 0, createdAt: w.createdAt, others: 0,
     }));
   }
-  const { data, error } = await db.rpc('list_my_wishes');
+  // Triplist a mapa si ju pýtali 2× (mount + `storeEpoch`); okno 3 s zlúči, zápis ho zahodí (`forgetShared`).
+  const { data, error } = await shared<{ data: unknown; error: { message: string } | null }>('my-wishes', () => db.rpc('list_my_wishes'), 3_000);
   if (error) throw error;
   return ((data ?? []) as MyRow[]).map((r) => ({
     id: r.id, lat: r.lat, lon: r.lon, placeName: r.place_name,
@@ -237,6 +242,7 @@ export async function fetchMyWishes(): Promise<MyWish[]> {
 
 /** C2 POSUNÚŤ · C4 OŽIVIŤ · C5 TENTO ROK (`nudged` = odpoveď na C5, ďalšia otázka o rok). */
 export async function postponeWish(id: string, when: WishWhen, nudged = false): Promise<void> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) return;
   const { error } = await db.rpc('postpone_wish', { p_id: id, p_when: when, p_nudged: nudged });
   if (error) throw error;
@@ -244,6 +250,7 @@ export async function postponeWish(id: string, when: WishWhen, nudged = false): 
 
 /** D1 (s výletom z LOGu) · D3 „len označiť" (`tripId` = null → bez bodov). */
 export async function fulfillWish(id: string, tripId: string | null): Promise<void> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) { mockWrite(mockRead().filter((w) => w.id !== id)); return; }
   const { error } = await db.rpc('fulfill_wish', { p_id: id, p_trip: tripId });
   if (error) throw error;
@@ -253,6 +260,7 @@ export async function fulfillWish(id: string, tripId: string | null): Promise<vo
 
 /** C5 EŠTE NIE — otázka príde o rok. */
 export async function wishLater(id: string): Promise<void> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) return;
   const { error } = await db.rpc('wish_later', { p_id: id });
   if (error) throw error;
@@ -260,6 +268,7 @@ export async function wishLater(id: string): Promise<void> {
 
 /** C4 NECHAŤ TAK — prianie ostane v profile ako prešvihnuté, otázka zhasne. */
 export async function dismissMissedWish(id: string): Promise<void> {
+  forgetShared('my-wishes');
   if (DEV_NOAUTH) return;
   const { error } = await db.rpc('dismiss_missed_wish', { p_id: id });
   if (error) throw error;

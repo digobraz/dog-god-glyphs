@@ -54,7 +54,7 @@ import { useTripAuthors } from '@/components/pack/feed/feedData';
 import { MyLocIcon } from '@/components/pack/MyLocIcon';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
-import { Fragment, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { TripCardSlot } from '@/components/pack/TripCardSlot';
 import { MapContainer, TileLayer, Polyline, Polygon, Circle, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
@@ -1001,6 +1001,163 @@ function ViewportWatcher({ onChange }: { onChange: (b: ViewBox) => void }) {
   useMapEvent('zoomend', emit);
   return null;
 }
+
+// TRASY NA MAPE = VLASTNÁ `memo` VRSTVA (optimalizácia appky, 24. 11. 2026). Predtým boli 77 trás × 4 vrstvy
+// (+ kruhy plôch) priamo v JSX tohto veľkého komponentu, takže KAŽDÝ hover a každé písmeno vo filtri prekreslilo
+// 700+ Polyline/Circle. Teraz je každá trasa vlastný `memo` riadok a pri hoveri sa prekreslia len dve (stará a nová).
+// Vlastnosti, ktoré drží pokope: handlery sú stabilné (settery + ref na `selectTrail`), cesta ide cez `fullPathOf`.
+type TrailLineProps = {
+  tr: HeroTrail;
+  hot: boolean;
+  lineHover: boolean;
+  ghost: boolean;
+  mapDrawing: boolean;
+  isCleanMode: boolean;
+  saberScale: number;
+  path: LatLngTuple[];
+  setHoverId: (id: string | null) => void;
+  setLineHoverId: (id: string | null) => void;
+  selectRef: { current: (tr: HeroTrail) => void };
+};
+const TrailLine = memo(function TrailLine({ tr, hot, lineHover, ghost, mapDrawing, isCleanMode, saberScale, path, setHoverId, setLineHoverId, selectRef }: TrailLineProps) {
+  // Pri kreslení ustúpia VŠETKY hotové trasy — aj tá pod myšou (rozsvietiť cudziu trasu pri kreslení vlastnej je zmätok).
+  const dim = mapDrawing ? DRAW_TRAIL_DIM : 1;
+  /** KRESLENIE JE IZOLOVANÉ (Matej 2026-08-23): `undefined` = react-leaflet nezaregistruje NIČ, klik prejde na mapu
+   *  a kotva pribudne tam, kam si klikol, nie cudzí výlet. */
+  const handlers = useMemo(() => mapDrawing ? undefined : {
+    mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
+    mouseout: () => { setHoverId(null); setLineHoverId(null); },
+    click: () => selectRef.current(tr),
+  }, [mapDrawing, tr, setHoverId, setLineHoverId, selectRef]);
+  // Diaľková cesta (journey) = plná červená čiara v bielom ráme, v pokoji sa NEKRESLÍ (drží ju piktogram);
+  // `hot` je pri hoveri NA ČIARE zámerne false, preto sa kreslí aj pri `lineHover`. V čistom DOGYPT vizuáli
+  // padá journey do rovnakej vetvy ako ostatné trasy (svetelný meč).
+  if (!isCleanMode && tr.acts?.includes('journey')) {
+    if (!hot && !lineHover) return null;
+    const w = 5;
+    return (
+      <>
+        <Polyline
+          positions={path}
+          pathOptions={{ color: '#FFFFFF', weight: w + 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
+          eventHandlers={handlers}
+        />
+        <Polyline
+          positions={path}
+          pathOptions={{ color: ghost ? '#6E6E6E' : '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
+          eventHandlers={handlers}
+        />
+      </>
+    );
+  }
+  // Trasa = fialový „svetelný meč" (issue #49): štyri vrstvy na tých istých bodoch. V POKOJI priehľadnejšie a bez
+  // dosvitu (`SABER_REST_OPACITY`), POD MYŠOU / VYBRANÁ plná sýtosť + dosvit. Magistrála na prevzatie sa v pokoji nekreslí.
+  const alpha = hot ? 1 : SABER_REST_OPACITY;
+  if (ghost && !hot) return null;
+  return (
+    <>
+      {(ghost ? GHOST_SABER_LAYERS : TRAIL_SABER_LAYERS).map((ly) => (
+        <Polyline
+          key={ly.key}
+          positions={path}
+          // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez `setStyle`, ktorý `className`
+          // IGNORUJE — dosvit preto nasadzujeme priamo na SVG element. `bringToFront` pri rozsvietení: SVG nepozná
+          // z-index a kreslí v poradí datasetu (Záruby 1/2/3 zdieľajú záverečný úsek).
+          ref={(layer) => {
+            const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
+            if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && !mapDrawing && saberScale >= 0.7);
+            if (hot) (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.();
+          }}
+          pathOptions={{
+            color: ly.color,
+            weight: Math.max(0.8, ly.weight * saberScale),
+            opacity: ly.opacity * alpha * dim,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }}
+          eventHandlers={handlers}
+        />
+      ))}
+    </>
+  );
+});
+
+const AreaCircle = memo(function AreaCircle({ tr, mapDrawing, selectRef }: { tr: HeroTrail; mapDrawing: boolean; selectRef: { current: (tr: HeroTrail) => void } }) {
+  const handlers = useMemo(() => mapDrawing ? undefined : { click: () => selectRef.current(tr) }, [mapDrawing, tr, selectRef]);
+  return (
+    <Circle
+      center={tr.path[0]}
+      radius={tr.areaR as number}
+      pathOptions={{
+        color: TRAIL_LINE.mid,
+        weight: 2,
+        opacity: mapDrawing ? DRAW_TRAIL_DIM : 1,
+        fillColor: TRAIL_LINE.mid,
+        fillOpacity: (mapDrawing ? DRAW_TRAIL_DIM : 1) * 0.12,
+      }}
+      eventHandlers={handlers}
+    />
+  );
+});
+
+/** Čiary trás + okruhy zapísaných miest. `onlyIdsKey` (id oddelené `\n`) zúži kreslenie pri malom zoome na výlety, ktoré
+ *  prešli filtrom; vybraná a rozsvietená trasa sa kreslí vždy. Pri kreslení trasy (`mapDrawing`) filter neplatí. */
+const TrailsLayer = memo(function TrailsLayer({ trails, isCleanMode, walkedTrailIds, onlyIdsKey, hoverId, lineHoverId, inlineDetailId, mapDrawing, saberScale, packWalked, trailPaths, setHoverId, setLineHoverId, selectRef }: {
+  trails: HeroTrail[];
+  isCleanMode: boolean;
+  walkedTrailIds: Set<string>;
+  onlyIdsKey: string | null;
+  hoverId: string | null;
+  lineHoverId: string | null;
+  inlineDetailId: string | null;
+  mapDrawing: boolean;
+  saberScale: number;
+  packWalked: Set<string>;
+  trailPaths: ReturnType<typeof useTrailPaths>;
+  setHoverId: (id: string | null) => void;
+  setLineHoverId: (id: string | null) => void;
+  selectRef: { current: (tr: HeroTrail) => void };
+}) {
+  const only = useMemo(() => (onlyIdsKey === null ? null : new Set(onlyIdsKey.split('\n'))), [onlyIdsKey]);
+  const lines = useMemo(
+    () => trails.filter((tr) => tr.path.length > 1 && !isWaterTrail(tr) && (!isCleanMode || walkedTrailIds.has(tr.id))),
+    [trails, isCleanMode, walkedTrailIds],
+  );
+  const areas = useMemo(
+    () => trails.filter((tr) => tr.areaR && tr.path.length === 1 && (!isCleanMode || walkedTrailIds.has(tr.id))),
+    [trails, isCleanMode, walkedTrailIds],
+  );
+  return (
+    <>
+      {lines.map((tr) => {
+        const selected = inlineDetailId === tr.id;
+        const lineHover = lineHoverId === tr.id;
+        // Hover na čiare, zo zoznamu aj výber ju ROZSVIETIA (2026-08-20); pri hoveri na čiare `hot` ostáva false len pre journey.
+        const hot = selected || hoverId === tr.id || lineHover;
+        if (only && !mapDrawing && !hot && !only.has(tr.id)) return null;
+        return (
+          <TrailLine
+            key={tr.id}
+            tr={tr}
+            hot={hot}
+            lineHover={lineHover}
+            ghost={isGhostJourney(tr, packWalked)}
+            mapDrawing={mapDrawing}
+            isCleanMode={isCleanMode}
+            saberScale={saberScale}
+            path={fullPathOf(tr, trailPaths)}
+            setHoverId={setHoverId}
+            setLineHoverId={setLineHoverId}
+            selectRef={selectRef}
+          />
+        );
+      })}
+      {areas.map((tr) => (only && !mapDrawing && inlineDetailId !== tr.id && !only.has(tr.id)) ? null : (
+        <AreaCircle key={`area-${tr.id}`} tr={tr} mapDrawing={mapDrawing} selectRef={selectRef} />
+      ))}
+    </>
+  );
+});
 
 // Hlási hore ŠKÁLU hrúbky trasy (issue #49) — nie surový zoom. Bucket z trailSaberScale sa mení
 // len na pár stupňoch, takže sa 77 polyline neprekresľuje pri každom kroku zoomu. Rovnaký vzor
@@ -4129,6 +4286,8 @@ export default function PackMap() {
   const viewBeforeDetailRef = useRef<MapView | null>(null);
   const [photoIdx, setPhotoIdx] = useState<Record<string, number>>({});
   const heroCardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // `selectTrail` je definovaný až za skorým returnom a mení identitu — vrstva trás (`TrailsLayer`, memo) ho berie cez ref.
+  const selectTrailRef = useRef<(tr: HeroTrail) => void>(() => {});
 
   // bod 5 side-effect: sessionStorage mirror (tripShared) — expand teraz unmountne tento
   // komponent (navigate na PackTripArticle), tak fav/walked musí prežiť mount/unmount v
@@ -5005,7 +5164,10 @@ export default function PackMap() {
 
   // hover na pin/kartu → doscrolluje zodpovedajúcu kartu do viewportu
   useEffect(() => {
-    if (hoverId) heroCardRefs.current[hoverId]?.scrollIntoView({ block: 'nearest' });
+    if (!hoverId) return;
+    const el = heroCardRefs.current[hoverId]
+      ?? document.querySelector<HTMLElement>(`.trp-cards-scroll [data-trip-id="${window.CSS.escape(hoverId)}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
   }, [hoverId]);
 
   // EVENT pin kliknutý (nie hover — eventy nemajú km-pilulku ani hover-scroll trip vzor, len
@@ -6677,6 +6839,9 @@ export default function PackMap() {
      `mapPoints` ich vylučuje sám pri vzniku, takže cez tento filter ani neprejdú. */
   const visibleTrailIds = new Set(visibleHeroTrails.map(({ tr }) => tr.id));
   const visibleMapPoints = mapPoints.filter((pt) => visibleTrailIds.has(pt.id));
+  // vrstva trás (memo) dostane reťazec, nie nový `Set` na každý render — inak by `memo` nikdy nezabralo
+  const visibleTrailIdsKey = visibleHeroTrails.map(({ tr }) => tr.id).join('\n');
+  selectTrailRef.current = selectTrail;
 
   // status riadok staty — reálne z lokálneho walked/fav stavu (žiadny mock); allTrails, nech
   // aj prípadný walked toggle na ADD-flow tripe počíta do celkového km (bod 2 + bod 6).
@@ -6829,10 +6994,10 @@ export default function PackMap() {
       {elsewhereTrails.map(({ tr }) => renderListCard(tr, withRef))}
     </>
   );
-  // Mobil kreslí kartu až pri obrazovke (TripCardSlot); PC ju drží stále, lebo hover z mapy na ňu scrolluje cez ref.
-  const renderListCard = (tr: HeroTrail, withRef: boolean) => (withRef
-    ? renderTripCard(tr, true)
-    : <TripCardSlot key={tr.id}>{() => renderTripCard(tr, false)}</TripCardSlot>);
+  // Od 24. 11. 2026 aj PC: 881 ikoniek hodnotenia a 1785 img naraz držalo 8,4k DOM uzlov. Hover z mapy scrolluje na
+  // slot cez `data-trip-id` (placeholder má nameranú výšku), IntersectionObserver kartu dokreslí.
+  const renderListCard = (tr: HeroTrail, withRef: boolean) => (
+    <TripCardSlot key={tr.id} tripId={tr.id}>{() => renderTripCard(tr, withRef)}</TripCardSlot>);
 
   // karta zdieľaná medzi desktop .trp-cards-scroll a mobile .trp-mlist (bod 5) — withRef len
   // pre desktop (hover→scrollIntoView), mobile ju nepotrebuje (touch, žiadny hover-scroll).
@@ -6892,7 +7057,7 @@ export default function PackMap() {
           {tr.photos.length > 1
             ? <SwipePhotos photos={tr.photos.map((u) => sizedUrl(u, 800) || u)} idx={idx} onIdx={(i) => setPhotoIdx((p) => ({ ...p, [tr.id]: i }))} position={(i) => coverPos(tr, i)} />
             : photo && <img className="trp-bigcard-img" src={photo} alt="" loading="lazy" decoding="async" draggable={false} style={{ objectPosition: coverPos(tr, idx) }} />}
-          <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" draggable={false} />
+          <img className="trp-cardflag" src={flagUrl(trailCountry(tr))} alt="" loading="lazy" decoding="async" draggable={false} />
           {mg && !isFreeTrip(tr.id) && <span className="trp-lockbadge"><HandLock size={12} /></span>}
           {tr.photos.length > 1 && (
             <div className="trp-bigcard-photonav">
@@ -8038,132 +8203,22 @@ export default function PackMap() {
                   iba SNP a poloniny — ostatné až keď prejdú Dogypťania") — v `isCleanMode` sa
                   kreslí LEN to, čo je aj v hmle (`walkedTrailIds`), platí pre magistrály aj bežné
                   trasy rovnako. Mimo DOGYPT (Outdoor/Satelit) je to nedotknuté — vidno všetko. */}
-              {allTrails.filter((tr) => tr.path.length > 1 && !isWaterTrail(tr) && (!isCleanMode || walkedTrailIds.has(tr.id))).map((tr) => {
-                // myš NA ČIARE → trasa vybledne, nech je pod ňou vidno turistické značenie
-                // (Matej 2026-07-31). Hover zo zoznamu/markera ostáva zlaté zvýraznenie —
-                // tam trasu hľadáš, tu sa na ňu pozeráš. Rovnaký princíp ako `routeDimmed`
-                // v PackTripArticle (tam sa stlmí vybraná trasa pri dotyku mapy).
-                const selected = inlineDetailId === tr.id;
-                const lineHover = lineHoverId === tr.id;
-                // ⚠️ 2026-08-20 OBRÁTENÉ. Predtým: hover NA ČIARE trasu STLMIL (`dim = 0.3`),
-                // aby bolo pod ňou vidno turistické značenie (Matej 31. 7.). Odvtedy je pokojná
-                // trasa priehľadná stále, takže značenie vidno aj bez toho — a stlmenie pod myšou
-                // pôsobilo ako chyba: ideš na trasu a ona zmizne. Teraz je hover na čiare
-                // rovnocenný s hoverom zo zoznamu aj s výberom: všetky tri ju ROZSVIETIA.
-                const hot = selected || hoverId === tr.id || lineHover;
-                // Pri kreslení ustúpia VŠETKY hotové trasy — aj tá pod myšou. Rozsvietiť
-                // cudziu trasu v okamihu, keď človek kreslí vlastnú, je presne ten zmätok,
-                // kvôli ktorému sa stlmenie zavádza.
-                const dim = mapDrawing ? DRAW_TRAIL_DIM : 1;
-                /**
-                 * KRESLENIE JE IZOLOVANÝ PROCES (Matej 2026-08-23: „pri kreslení sa nemôže stať,
-                 * aby sa otvorilo niečo iné").
-                 *
-                 * Trasy pri kreslení síce ustúpia na `dim = 0.16`, ale STLMENÁ ČIARA JE STÁLE
-                 * ČIARA — klik na ňu volal `selectTrail` a namiesto kotvy sa otvoril cudzí výlet.
-                 * Stalo sa to pri kreslení Striebornica → Gajdošova, kde nová trasa vedie po
-                 * úseku, ktorý už v datasete je; čím lepšie kreslíš, tým istejšie do niečoho
-                 * trafíš.
-                 *
-                 * `undefined` (nie prázdny objekt): react-leaflet vtedy na vrstvu nezaregistruje
-                 * NIČ, takže Leaflet klik prepustí ďalej na mapu a kotva pribudne tam, kam si
-                 * klikol. Vypnúť len `click` by zožralo ťuknutie bez náhrady.
-                 */
-                const handlers = mapDrawing ? undefined : {
-                  mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
-                  mouseout: () => { setHoverId(null); setLineHoverId(null); },
-                  click: () => selectTrail(tr),
-                };
-                // journey (viacdňová, napr. Cesta hrdinov SNP) = plná červená čiara v bielom
-                // ráme: biely spojitý casing (pod) + červené spojité jadro (nad).
-                // Matej 2026-07-27: „pri diaľkových cestách sú vidno len piktogramy, po prejdení
-                // myšou sa zobrazí route a po kliku sa otvorí, ale inak nebude v základe vidno tie
-                // dlhé routes" — desať 100–770 km čiar cez pol Slovenska naraz robilo mapu surovou.
-                // V pokoji sa teda NEKRESLÍ nič, trasu drží len jej piktogram; hover naň (alebo
-                // výber) ju vykreslí. Handlery ostávajú aj na čiare, nech neblikne, keď z markera
-                // prejdeš myšou priamo na ňu.
-                // `!isCleanMode` (2026-08-04, Matej: „chýba svetelný meč na SNP a poloniny"): táto
-                // vetva (piktogram drží trasu, čiara len na hover) je Outdoor/Satelit špecifikum —
-                // piktogramy tam vôbec nekreslíme (DOGYPT čistý vizuál), takže v DOGYPT nemá čo
-                // trasu „držať" a magistrála by bola vidno len na hover. V DOGYPT sú prejdené
-                // journey navyše LEN dve (SNP, Poloniny, nie 10 magistrál) — surovosť viacerých
-                // naraz odpadá. Journey preto spadne do rovnakej vetvy nižšie ako ostatné trasy:
-                // vždy vykreslená, rovnaký fialový „svetelný meč" (TRAIL_SABER_LAYERS), nie
-                // vlastná červená farba — v čistom vizuáli nemá zmysel farbou rozlišovať „toto je
-                // diaľková cesta", to bol orientačný signál pre pracovnú mapu.
-                if (!isCleanMode && tr.acts?.includes('journey')) {
-                  // pozor: `hot` je pri hoveri NA ČIARE zámerne false (trasa vybledá), takže
-                  // magistrála musí ostať vykreslená aj v tomto stave — inak by zmizla presne
-                  // v okamihu, keď na ňu ideš myšou.
-                  if (!hot && !lineHover) return null;
-                  const w = 5;
-                  return (
-                    <Fragment key={tr.id}>
-                      <Polyline
-                        positions={fullPathOf(tr, trailPaths)}
-                        pathOptions={{ color: '#FFFFFF', weight: w + 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                        eventHandlers={handlers}
-                      />
-                      <Polyline
-                        positions={fullPathOf(tr, trailPaths)}
-                        pathOptions={{ color: isGhostJourney(tr, packWalked) ? '#6E6E6E' : '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                        eventHandlers={handlers}
-                      />
-                    </Fragment>
-                  );
-                }
-                // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
-                // trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch (tmavý
-                // okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
-                // Farba čiary je VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR).
-                //
-                // ⚠️ 2026-08-20 — MEČ MÁ DVA STAVY, nie dve rôzne čiary (Matej: „trasy nebudú tak
-                // žiariť, svetelný meč bude žiariť len pri kliknutí alebo prejdení myšou").
-                // V POKOJI: tie isté štyri vrstvy, len priehľadnejšie (`SABER_REST_OPACITY`)
-                //           a BEZ dosvitu. Mapa so 77 trasami tak prestala svietiť celá naraz.
-                // POD MYŠOU / VYBRANÁ: plná sýtosť + dosvit — teda presne dnešný vzhľad.
-                // Zlatá z ČIARY tým odišla: keď svieti len tá, na ktorú sa pozeráš, druhá farba
-                // na rozlíšenie netreba. Zlatú nesie ďalej pilulka (a tá je pod myšou BIELA).
-                const alpha = hot ? 1 : SABER_REST_OPACITY;
-                // MAGISTRÁLA NA PREVZATIE: v pokoji sa NEKRESLÍ (Matej 5. 10.: „nech nám zbytočne
-                // nezavadzá"), drží ju čiernobiela pilulka; pod myšou a vo výbere čiernobiely meč.
-                const ghost = isGhostJourney(tr, packWalked);
-                if (ghost && !hot) return null;
-                return (
-                  <Fragment key={tr.id}>
-                    {(ghost ? GHOST_SABER_LAYERS : TRAIL_SABER_LAYERS).map((ly) => (
-                      <Polyline
-                        key={ly.key}
-                        positions={fullPathOf(tr, trailPaths)}
-                        // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
-                        // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
-                        // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
-                        // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
-                        // element. Inline ref beží pri každom renderi, takže prepnutie podľa
-                        // zoomu ani podľa stavu netreba riešiť remountom vrstvy.
-                        // `bringToFront` pri rozsvietení: SVG nepozná z-index a kreslí v poradí
-                        // datasetu, takže trasa, ktorá je v dátach neskôr, by rozsvietenú
-                        // prekreslila zhora (Záruby 1/2/3 zdieľajú záverečný úsek).
-                        ref={(layer) => {
-                          const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
-                          if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && !mapDrawing && saberScale >= 0.7);
-                          if (hot) (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.();
-                        }}
-                        pathOptions={{
-                          color: ly.color,
-                          weight: Math.max(0.8, ly.weight * saberScale),
-                          opacity: ly.opacity * alpha * dim,
-                          lineCap: 'round',
-                          lineJoin: 'round',
-                          // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
-                          // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
-                        }}
-                        eventHandlers={handlers}
-                      />
-                    ))}
-                  </Fragment>
-                );
-              })}
+              <TrailsLayer
+                trails={allTrails}
+                isCleanMode={isCleanMode}
+                walkedTrailIds={walkedTrailIds}
+                onlyIdsKey={noteZoom > 0 && noteZoom < MAP_LAYERS_ZOOM ? visibleTrailIdsKey : null}
+                hoverId={hoverId}
+                lineHoverId={lineHoverId}
+                inlineDetailId={inlineDetailId}
+                mapDrawing={mapDrawing}
+                saberScale={saberScale}
+                packWalked={packWalked}
+                trailPaths={trailPaths}
+                setHoverId={setHoverId}
+                setLineHoverId={setLineHoverId}
+                selectRef={selectTrailRef}
+              />
               {/* trip pily (start/stred trasy) + vodné plochy (ťažisko) — jedna vrstva, zoomovo
                   vrstvená + pixelovo zhlukovaná (zadanie 2.3/2.4, <TripMarkers> vyššie pri mape).
                   Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
@@ -8219,21 +8274,6 @@ export default function PackMap() {
                   `eventHandlers` sa pri kreslení vypína z rovnakého dôvodu ako pri trasách:
                   stlmená plocha je stále plocha a klik do nej by namiesto kotvy otvoril cudzí
                   výlet. */}
-              {allTrails.filter((tr) => tr.areaR && tr.path.length === 1 && (!isCleanMode || walkedTrailIds.has(tr.id))).map((tr) => (
-                <Circle
-                  key={`area-${tr.id}`}
-                  center={tr.path[0]}
-                  radius={tr.areaR as number}
-                  pathOptions={{
-                    color: TRAIL_LINE.mid,
-                    weight: 2,
-                    opacity: mapDrawing ? DRAW_TRAIL_DIM : 1,
-                    fillColor: TRAIL_LINE.mid,
-                    fillOpacity: (mapDrawing ? DRAW_TRAIL_DIM : 1) * 0.12,
-                  }}
-                  eventHandlers={mapDrawing ? undefined : { click: () => selectTrail(tr) }}
-                />
-              ))}
               {/* uložené PLÁNY (nie vodné plochy!) = jeden RUŽOVÝ bod na mape → Marker, klik vyberie
                   trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. Skryté v
                   DOGYPT rovnako ako ostatné trip markery — je to pin, ktorý potrebuje legendu. */}

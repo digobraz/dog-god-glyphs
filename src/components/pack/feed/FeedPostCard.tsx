@@ -20,6 +20,7 @@ import { shareOut } from './feedShare';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { toggleMark } from '@/components/pack/story/storyData';
 import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/components/pack/profile/mePosts';
+import { shared } from '@/lib/sharedFetch';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel, useSwipe } from './feedData';
 import { intlLocale } from '@/i18n/bcp47';
@@ -102,7 +103,8 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
   const [idx, setIdx] = useState(0);
   const np = post.photos.length;
   const swipe = useSwipe(np, (d) => setIdx((i) => (i + d + np) % np));
-  useEffect(() => { void fetchPostSocial(post.id).then(setSoc).catch(() => {}); }, [post.id]);
+  // audit 23. 11. 2026: `post_social_many` 2× na domove — karta, ktorá sa premontuje, dostane ten istý sľub (okno 5 s), nie ďalšiu dávku
+  useEffect(() => { void shared(`post-social:${post.id}`, () => fetchPostSocial(post.id)).then(setSoc).catch(() => {}); }, [post.id]);
 
   const nature = isNature(post);
   const place = post.attach.place;

@@ -591,7 +591,7 @@ function Body({ s, v, set, tx, own, setOwn, dogId }: {
           const [kg, br] = tx(o.d ?? '').split('·').map((x) => x.trim());
           return (
             <button type="button" key={o.v} className={`dfl-sz${v[field] === o.v ? ' on' : ''}`} onClick={() => set(field, v[field] === o.v ? null : o.v)}>
-              <span className="pic"><img src="/images/dogid/siluela.svg" alt="" style={{ height: `${H[i]}%` }} /></span>
+              <span className="pic"><img src="/images/dogid/siluela.svg" alt="" loading="lazy" decoding="async" style={{ height: `${H[i]}%` }} /></span>
               <b>{tx(o.t)}</b><em>{kg}</em><small>{br}</small>
             </button>
           );
@@ -751,7 +751,7 @@ function WeightPhotos({ s, tx, dogId, v, set }: { s: FlowScreen; tx: Tx; dogId: 
       <div className="dfl-ph">
         {[{ url: side, put: setSide, l: P.side, h: P.sideHint, ex: 'siluela' }, { url: top, put: setTop, l: P.top, h: P.topHint, ex: 'zhora' }].map((x) => (
           <label className="dfl-phb" key={x.ex}>
-            {x.url ? <img className="full" src={x.url} alt="" /> : <img src={`/images/dogid/${x.ex}.svg`} alt="" />}
+            {x.url ? <img className="full" src={x.url} alt="" loading="lazy" decoding="async" /> : <img src={`/images/dogid/${x.ex}.svg`} alt="" loading="lazy" decoding="async" />}
             {!x.url && <><b>{tx(x.l)}</b><small>{tx(x.h)}</small></>}
             <input type="file" accept="image/*" disabled={busy} aria-label={tx(x.l)} onChange={(e) => { void up(e, x.put); }} />
           </label>
@@ -775,9 +775,9 @@ function Intro({ s, tx, onBack, onStart }: { s: FlowScreen; tx: Tx; onBack: () =
       {s.s && <p className="dfl-s">{tx(s.s)}</p>}
       <div className="dfl-main">
         {s.badgesTitle && <span className="dfl-lab">{tx(s.badgesTitle)}</span>}
-        <div className="dfl-ax">{ELEMENT_KEYS.map((k) => <figure key={k}><img src={`/images/nature/el-${k}.webp`} alt="" />{tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN)}</figure>)}</div>
-        <div className="dfl-ax">{ROLE_KEYS.map((k) => <figure key={k}><img src={`/images/nature/role-${k}.webp`} alt="" />{tx(NATURE_ROLES[k].i18n, NATURE_ROLES[k].labelEN)}</figure>)}</div>
-        <div className="dfl-ax" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>{SPECIAL_KEYS.map((k) => <figure key={k}><img src={`/images/nature/spec-${k}.webp`} alt="" />{tx(NATURE_SPECIALS[k].i18n, NATURE_SPECIALS[k].labelEN)}</figure>)}</div>
+        <div className="dfl-ax">{ELEMENT_KEYS.map((k) => <figure key={k}><img src={`/images/nature/el-${k}.webp`} alt="" loading="lazy" decoding="async" />{tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN)}</figure>)}</div>
+        <div className="dfl-ax">{ROLE_KEYS.map((k) => <figure key={k}><img src={`/images/nature/role-${k}.webp`} alt="" loading="lazy" decoding="async" />{tx(NATURE_ROLES[k].i18n, NATURE_ROLES[k].labelEN)}</figure>)}</div>
+        <div className="dfl-ax" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>{SPECIAL_KEYS.map((k) => <figure key={k}><img src={`/images/nature/spec-${k}.webp`} alt="" loading="lazy" decoding="async" />{tx(NATURE_SPECIALS[k].i18n, NATURE_SPECIALS[k].labelEN)}</figure>)}</div>
       </div>
       {s.attr && <p className="dfl-attr">{tx(s.attr)}</p>}
       <button type="button" className="dfl-cta w pk-b3 pk-b3--lapis" onClick={onStart}>{tx(s.cta ?? 'pack.flow.ui.start')}</button>
@@ -799,8 +799,8 @@ function Result({ s, tx, dog, r, onBack, onAgain, onDone, dogRow }: {
           <div className="nm">{dog.dog_name}</div>
           <div className="tt">{tx(NATURE_ROLES[r.role].i18n, NATURE_ROLES[r.role].labelEN)} {tx(`pack.nature.el.${r.element}.of`, r.element)}</div>
           <div className="dfl-badges">
-            <div className="dfl-bd"><img src={`/images/nature/el-${r.element}.webp`} alt="" /><b>{tx(NATURE_ELEMENTS[r.element].i18n, NATURE_ELEMENTS[r.element].labelEN)}</b></div>
-            <div className="dfl-bd"><img src={`/images/nature/role-${r.role}.webp`} alt="" /><b>{tx(NATURE_ROLES[r.role].i18n, NATURE_ROLES[r.role].labelEN)}</b></div>
+            <div className="dfl-bd"><img src={`/images/nature/el-${r.element}.webp`} alt="" loading="lazy" decoding="async" /><b>{tx(NATURE_ELEMENTS[r.element].i18n, NATURE_ELEMENTS[r.element].labelEN)}</b></div>
+            <div className="dfl-bd"><img src={`/images/nature/role-${r.role}.webp`} alt="" loading="lazy" decoding="async" /><b>{tx(NATURE_ROLES[r.role].i18n, NATURE_ROLES[r.role].labelEN)}</b></div>
           </div>
         </div>
       )}

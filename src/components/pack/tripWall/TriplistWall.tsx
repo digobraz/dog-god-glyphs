@@ -96,7 +96,7 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
   const dream = (w: MyWish) => (
     <button key={w.id} type="button" className="tlw-dr" onClick={() => onOpenWish(w)}>
       <svg viewBox="0 0 148 184" aria-hidden="true">{STARS.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.r} opacity={s.o} fill={LAPIS.ink} />)}</svg>
-      <img className="tlw-df" src={w.countryCode ? flagUrl(w.countryCode).replace('/w40/', '/w160/') : ICO('tripwish')} alt="" />
+      <img className="tlw-df" src={w.countryCode ? flagUrl(w.countryCode).replace('/w40/', '/w160/') : ICO('tripwish')} alt="" loading="lazy" decoding="async" />
       <b>{w.placeName}</b>
       <small>{t(`pack.wish.kind.${w.tripKind}`)}</small>
       <i>{w.status === 'missed' ? t('pack.triplist.wishMissed') : t(`pack.wish.when.${w.when}`)}</i>
@@ -112,7 +112,7 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
     return (
       <>
         <div className="tw-sh">
-          <img src={ICO(st.kind === 'want' ? 'mapa' : 'vylety')} alt="" />
+          <img src={ICO(st.kind === 'want' ? 'mapa' : 'vylety')} alt="" loading="lazy" decoding="async" />
           <div>
             <h3>{t(st.kind === 'want' ? 'pack.triplist.myTripsWant' : 'pack.triplist.myTripsWalked')}</h3>
             <span className="tw-num">{n(inC.length)}</span>
@@ -123,7 +123,7 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
           <button type="button" className={st.iso === 'all' ? 'on' : ''} onClick={() => setSheet({ ...st, iso: 'all' })}>{t('pack.wall.all')}<b>{all.length}</b></button>
           {isos.map((iso) => (
             <button key={iso} type="button" className={st.iso === iso ? 'on' : ''} onClick={() => setSheet({ ...st, iso })}>
-              <img src={flagUrl(iso)} alt="" /><b>{all.filter((r) => trailCountry(r.trail) === iso).length}</b>
+              <img src={flagUrl(iso)} alt="" loading="lazy" decoding="async" /><b>{all.filter((r) => trailCountry(r.trail) === iso).length}</b>
             </button>
           ))}
         </div>
@@ -148,9 +148,9 @@ export function TriplistWall<R extends Row>({ upcoming, walked, wishes, renderCa
             <div className="tlw-car" onScroll={(e) => setSlide(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
               {upcoming.map(({ trail }) => (
                 <button key={trail.id} type="button" className="tlw-sl" onClick={() => onOpenTrip(trail)}>
-                  <img src={sizedUrl(coverOf(trail), 800)} alt="" />
+                  <img src={sizedUrl(coverOf(trail), 800)} alt="" loading="lazy" decoding="async" />
                   <span className="tlw-vl" />
-                  <span className="tlw-top"><img src={flagUrl(trailCountry(trail))} alt="" /><u>{t('pack.triplist.myTripsWant')}</u></span>
+                  <span className="tlw-top"><img src={flagUrl(trailCountry(trail))} alt="" loading="lazy" decoding="async" /><u>{t('pack.triplist.myTripsWant')}</u></span>
                   <span className="tlw-tx"><b>{trail.name}</b><small>{Number(trail.km) ? `${n(Number(trail.km))} km · ` : ''}{trail.region}</small></span>
                 </button>
               ))}

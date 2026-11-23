@@ -12,6 +12,7 @@
 // (rovnaký vzor ako `placeholderMyTrips`). Požiadať sa dá len o REÁLNY výlet.
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { shared } from '@/lib/sharedFetch';
 import type { TravelInfo } from '@/components/pack/addtrip/addTripModel';
 
 export interface OpenTrip {
@@ -100,11 +101,12 @@ export function useTripEventTravel(slug: string | undefined, epoch = 0): Record<
       const { data: sess } = await supabase.auth.getSession();
       if (!sess.session?.user?.id) { if (!dead) setByHost({}); return; }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      // `epoch` sa po hydratácii zmení hneď po mounte → okno 1,5 s zlúči dva rovnaké dotazy (detail výletu volal 2×).
+      const { data, error } = await shared(`trip-travel:${slug}`, async () => (supabase as any)
         .from('trip_events')
         .select('host_id,travel')
         .eq('trip_slug', slug)
-        .eq('closed', false) as
+        .eq('closed', false), 1_500) as
         { data: Array<{ host_id: string; travel: TravelInfo | null }> | null; error: { message: string } | null };
       if (dead) return;
       if (error) { console.warn('[trip travel]', error.message); setByHost({}); return; }

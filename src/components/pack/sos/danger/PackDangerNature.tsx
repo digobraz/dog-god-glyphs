@@ -18,6 +18,7 @@ import { DANGER_FORM_CSS, DangerMap, GeoStatus, useGeoPick, type GeoPick } from 
 import { CharCount, clearDraft, loadDraft, saveDraft, useArmed, useFieldErr, useSubmitLock } from './dangerForm';
 import { DANGER_RADIUS, dangerIsOffline, dangerPrecheck, dangerReport, type DangerGate } from '@/lib/danger';
 import type { SosKey } from '../sosTexts';
+import { AID_ON } from '@/lib/env';
 
 const BODY_MAX = 600;
 const DRAFT_KEY = 'nature';
@@ -151,7 +152,7 @@ export default function PackDangerNature() {
         <SosCard>
           <p className="sos-p"><b>{s('pack.sos.danger.report.poisonHelp')}</b></p>
           <div className="dgr-links">
-            <button type="button" onClick={() => navigate('/pack/sos/prva-pomoc')}>{s('pack.sos.danger.report.firstAid')}</button>
+            {AID_ON && <button type="button" onClick={() => navigate('/pack/sos/prva-pomoc')}>{s('pack.sos.danger.report.firstAid')}</button>}
             <button type="button" onClick={() => navigate('/pack/sos/pohotovost')}>{s('pack.sos.danger.report.er')}</button>
           </div>
         </SosCard>

@@ -417,7 +417,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     /* Vlajka len pri výlete mimo domova: slovenská v každom riadku nehovorí nič (Matej 8. 11.). */
     const lead = (x: WallItem, inCountry: boolean, lock = false) => {
       const pic = c.logos?.[x.name] ?? c.icon?.(x);
-      return <>{pic && <img className="tw-logo" src={pic} alt="" />}{!lock && !inCountry && x.iso !== home && <img src={flagUrl(x.iso)} alt="" />}</>;
+      return <>{pic && <img className="tw-logo" src={pic} alt="" loading="lazy" decoding="async" />}{!lock && !inCountry && x.iso !== home && <img src={flagUrl(x.iso)} alt="" loading="lazy" decoding="async" />}</>;
     };
     const rows = (items: WallItem[], inCountry: boolean) => items.map((x) => {
       const flag = lead(x, inCountry);
@@ -457,7 +457,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
       const miss = all ? all.filter((u) => !have.some((x) => x.name === u)) : [];
       return (
         <div key={iso}>
-          <div className="tw-cs"><img src={flagUrl(iso)} alt="" />{regionName(iso)}<b>{n(have.length)}{all && ` / ${all.length}`}</b></div>
+          <div className="tw-cs"><img src={flagUrl(iso)} alt="" loading="lazy" decoding="async" />{regionName(iso)}<b>{n(have.length)}{all && ` / ${all.length}`}</b></div>
           {all && <div className="tw-prg"><div className="pk-progress"><div className="pk-progress__fill" style={fillW((have.length / all.length) * 100)} /></div></div>}
           <div className="tw-ls">{rows(have, true)}{miss.map((u) => lockRow(u, iso))}</div>
         </div>
@@ -466,7 +466,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     return (
       <>
         <div className="tw-sh">
-          <img src={c.ic} alt="" />
+          <img src={c.ic} alt="" loading="lazy" decoding="async" />
           <div>
             <h3>{c.title}</h3>
             <span className="tw-num">{head}{units && <small> / {units.length}</small>}</span>
@@ -480,7 +480,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
             const k = c.items.filter((x) => x.iso === iso).length;
             return (
               <button key={iso} type="button" className={`${st.iso === iso ? 'on' : ''}${k ? '' : ' zero'}`} onClick={() => patch({ iso, water: 'all' })} aria-label={regionName(iso)}>
-                <img src={flagUrl(iso)} alt="" />{!c.sum && <b>{k}</b>}
+                <img src={flagUrl(iso)} alt="" loading="lazy" decoding="async" />{!c.sum && <b>{k}</b>}
               </button>
             );
           })}
@@ -490,7 +490,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
             <button type="button" className={st.water === 'all' ? 'on' : ''} onClick={() => patch({ water: 'all' })}>{t('pack.wall.allKinds')} <b>{inC.length}</b></button>
             {(['pond', 'reservoir', 'lake'] as WaterKind[]).map((w) => (
               <button key={w} type="button" className={st.water === w ? 'on' : ''} onClick={() => patch({ water: w })}>
-                <img src={ICO(`voda-${WATER_ICON[w]}`)} alt="" />{t(`pack.wall.waters.${w}`)} <b>{inC.filter((x) => x.water === w).length}</b>
+                <img src={ICO(`voda-${WATER_ICON[w]}`)} alt="" loading="lazy" decoding="async" />{t(`pack.wall.waters.${w}`)} <b>{inC.filter((x) => x.water === w).length}</b>
               </button>
             ))}
           </div>
@@ -520,7 +520,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
     const c = CATS[mark === 'stay' ? 'stays' : 'roadtrips'];
     return (
       <>
-        <div className="tw-sh"><img src={c.ic} alt="" /><div><h3>{c.title}</h3><span className="tw-num">{n(mark === 'stay' ? s.nights : c.items.length)}</span>{mark === 'stay' && <span className="tw-hd2">{t('pack.wall.tentNights')}</span>}</div></div>
+        <div className="tw-sh"><img src={c.ic} alt="" loading="lazy" decoding="async" /><div><h3>{c.title}</h3><span className="tw-num">{n(mark === 'stay' ? s.nights : c.items.length)}</span>{mark === 'stay' && <span className="tw-hd2">{t('pack.wall.tentNights')}</span>}</div></div>
         <input className="pf-field tw-find" type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder={t('pack.wall.searchTrip')} aria-label={t('pack.wall.searchTrip')} />
         <div className="tw-ls">
           {list.map((x) => {
@@ -530,7 +530,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
               <div key={x.id}>
                 <button type="button" className={`tw-row${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleKind(x, mark)}>
                   <span className="nm">{tripName(x, lang)}</span>
-                  {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" />}
+                  {k && !on && <img className="tw-oth" src={ICO(k === 'stay' ? 'stanovacky' : 'roadtrip')} alt="" loading="lazy" decoding="async" />}
                   {Number(x.km) > 0 && <span className="mt">{n(Number(x.km))} km</span>}
                   <span className="tw-tick">{on && <Check />}</span>
                 </button>
@@ -557,7 +557,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
 
   const renderCountries = () => (
     <>
-      <div className="tw-sh"><img src={ICO('krajiny')} alt="" /><div><h3>{t('pack.wall.countriesTitle')}</h3><span className="tw-num">{s.countries.length}</span></div></div>
+      <div className="tw-sh"><img src={ICO('krajiny')} alt="" loading="lazy" decoding="async" /><div><h3>{t('pack.wall.countriesTitle')}</h3><span className="tw-num">{s.countries.length}</span></div></div>
       {s.countries.map(({ iso, trails }) => {
         const kmC = trails.reduce((a, x) => a + (Number(x.km) || 0), 0);
         // Pohoria a NP majú menovateľ „X/celkom" (Matej 9. 11. 2026), len keď ho krajina má v `WALL_UNITS`; inak ostáva holé číslo.
@@ -565,13 +565,13 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
           const total = units?.[iso]?.length;
           return (
             <button type="button" onClick={() => openCat(cat, iso)}>
-              <img src={ic} alt="" /><b>{items.filter((x) => x.iso === iso).length}{total ? `/${total}` : ''}</b><span>{label}</span>
+              <img src={ic} alt="" loading="lazy" decoding="async" /><b>{items.filter((x) => x.iso === iso).length}{total ? `/${total}` : ''}</b><span>{label}</span>
             </button>
           );
         };
         return (
           <div key={iso} className="tw-cc" style={SUBBLOCK}>
-            <h4><img src={flagUrl(iso)} alt="" />{regionName(iso)}<small>{n(trails.length)} · {n(kmC)} km</small></h4>
+            <h4><img src={flagUrl(iso)} alt="" loading="lazy" decoding="async" />{regionName(iso)}<small>{n(trails.length)} · {n(kmC)} km</small></h4>
             <div className="tw-m">
               {m('ranges', ICO('pohoria'), s.ranges, t('pack.stats.geo.ranges'), WALL_UNITS.ranges)}
               {m('parks', ICO('narodny-park'), s.parks, t('pack.wall.parksShort'), WALL_UNITS.parks)}
@@ -586,7 +586,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
 
   const tile = (cat: CatKey, ic: string, count: ReactNode, label: string, wide?: boolean) => (
     <button type="button" className={`tw-tile${wide ? ' wide' : ''}`} style={SUBBLOCK} onClick={() => openCat(cat)}>
-      <img src={ic} alt="" /><span><span className="tw-num">{count}</span><span className="tw-t2">{label}</span></span><TileChev />
+      <img src={ic} alt="" loading="lazy" decoding="async" /><span><span className="tw-num">{count}</span><span className="tw-t2">{label}</span></span><TileChev />
     </button>
   );
 
@@ -608,7 +608,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
   const renderLevel = () => (
     <>
       <div className="tw-lvh">
-        <img src={pilgrimImg(tierIdx)} alt="" />
+        <img src={pilgrimImg(tierIdx)} alt="" loading="lazy" decoding="async" />
         <div>
           <small>{t('pack.map.rankPilgrim')}</small>
           <h3>{t('pack.wall.level', { n: lvl.level })}</h3>
@@ -667,10 +667,10 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
       {s.peaks.length + s.byKm.length > 0 && <>
         <div className="tw-sec">{t('pack.wall.records')}</div>
         <div className="tw-grid">
-          {s.peaks[0] && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('peaks')}><img src={ICO('najvyssi-lapis')} alt="" /><span><b>{n(s.peaks[0].value ?? 0)} m</b><small>{s.peaks[0].name}</small></span></button>}
-          {longest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km-lapis')} alt="" /><span><b>{n(Number(longest.km))} km</b><small>{tripName(longest, lang)}</small></span></button>}
-          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" /><span><b>{n(ascentOf(steepest))} m</b><small>{tripName(steepest, lang)}</small></span></button>}
-          {topRange && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ranges')}><img src={ICO('pohoria-lapis')} alt="" /><span><b>{topRange.trails.length}×</b><small>{topRange.name}</small></span></button>}
+          {s.peaks[0] && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('peaks')}><img src={ICO('najvyssi-lapis')} alt="" loading="lazy" decoding="async" /><span><b>{n(s.peaks[0].value ?? 0)} m</b><small>{s.peaks[0].name}</small></span></button>}
+          {longest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('km')}><img src={ICO('km-lapis')} alt="" loading="lazy" decoding="async" /><span><b>{n(Number(longest.km))} km</b><small>{tripName(longest, lang)}</small></span></button>}
+          {steepest && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ascent')}><img src={ICO('vrcholy-lapis')} alt="" loading="lazy" decoding="async" /><span><b>{n(ascentOf(steepest))} m</b><small>{tripName(steepest, lang)}</small></span></button>}
+          {topRange && <button type="button" className="tw-rec" style={SUBBLOCK} onClick={() => openCat('ranges')}><img src={ICO('pohoria-lapis')} alt="" loading="lazy" decoding="async" /><span><b>{topRange.trails.length}×</b><small>{topRange.name}</small></span></button>}
         </div>
       </>}
 
@@ -678,7 +678,7 @@ export function TripStatsWall({ walkedTrails, ownerName, avatarUrl, dogs, lvl, d
         <div className="tw-sec">{t('pack.wall.dogs')}</div>
         {dogStats.map((d) => (
           <div key={d.id} className="tw-dog" style={SUBBLOCK}>
-            {d.photo ? <img src={sizedUrl(d.photo, 96)} alt="" /> : <span className="tw-av" style={{ width: 48, height: 48 }} />}
+            {d.photo ? <img src={sizedUrl(d.photo, 96)} alt="" loading="lazy" decoding="async" /> : <span className="tw-av" style={{ width: 48, height: 48 }} />}
             <div><b>{d.name}</b><small>{t('pack.wall.dogLine', { trips: n(d.trips), km: n(d.km) })}</small></div>
           </div>
         ))}

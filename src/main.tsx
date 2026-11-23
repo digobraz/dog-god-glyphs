@@ -13,9 +13,6 @@ import { scrubSecrets } from "./lib/packAnalytics";
 import { startAppUpdate } from "./lib/appUpdate";
 import { startAppKeyboard } from "./lib/appKeyboard";
 import { startAppLinks } from "./lib/appLinks";
-import { restoreAppSession } from "./lib/appSession";
-import { startAppPush } from "./lib/appPush";
-import { startAppActivity } from "./lib/appActivity";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
@@ -36,10 +33,10 @@ startAppKeyboard();
 startAppLinks();
 
 // Push: po prihlásení uloží token zariadenia (lib/appPush.ts), ak člen povolil upozornenia. Na webe nič.
-startAppPush();
+if (IS_APP) void import("./lib/appPush").then((m) => m.startAppPush());
 
 // Dohľad: obrazovky a ťuky (názov tlačidla) dávkovo do app_events, každému členovi (lib/appActivity.ts). Na webe nič.
-startAppActivity();
+if (IS_APP) void import("./lib/appActivity").then((m) => m.startAppActivity());
 
 // ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
 // Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii
@@ -121,7 +118,7 @@ if (import.meta.env.DEV && window.top !== window) {
 if (import.meta.env.DEV && window.top === window && new URLSearchParams(location.search).has("nakres")) {
   void import("./lib/nakres/NakresShell").then((m) => m.mountNakres());
 } else {
-  Promise.all([preloadActiveLang().catch(() => {}), restoreAppSession()]).finally(() => {
+  Promise.all([preloadActiveLang().catch(() => {}), IS_APP ? import("./lib/appSession").then((m) => m.restoreAppSession()) : Promise.resolve()]).finally(() => {
     createRoot(document.getElementById("root")!).render(<App />);
   });
 }

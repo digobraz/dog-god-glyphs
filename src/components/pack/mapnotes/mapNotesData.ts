@@ -303,7 +303,19 @@ export interface MapBox { n: number; s: number; e: number; w: number }
  * `onlyMine` = len moje (body za odkazy do levelu nepotrebujú cudzie značky).
  * ⚠️ Na LIVE, kým migrácia nebeží, RPC parametre ignoruje/odmietne — nasadzuj migráciu PRED klientom.
  */
-export async function fetchMapNotes(box?: MapBox, onlyMine = false): Promise<MapNote[]> {
+export function fetchMapNotes(box?: MapBox, onlyMine = false): Promise<MapNote[]> {
+  const p = fetchMapNotesRaw(box, onlyMine);
+  if (!box && !onlyMine) { allRun = { at: Date.now(), p }; p.catch(() => { if (allRun?.p === p) allRun = null; }); }
+  return p;
+}
+
+/** Posledné načítanie CELEJ vrstvy — `useMyNotePoints` z neho berie moje značky namiesto druhého `list_map_notes`. */
+let allRun: { at: number; p: Promise<MapNote[]> } | null = null;
+export const recentAllNotes = (maxAgeMs = 30_000): Promise<MapNote[]> | null =>
+  allRun && Date.now() - allRun.at < maxAgeMs ? allRun.p : null;
+export const forgetAllNotes = (): void => { allRun = null; };
+
+async function fetchMapNotesRaw(box?: MapBox, onlyMine = false): Promise<MapNote[]> {
   if (DEV_NOAUTH) return devListNotes();
   if (!(await hasSession())) return []; // anonym: RPC je len pre členov (hasSession.ts)
   const args = box || onlyMine

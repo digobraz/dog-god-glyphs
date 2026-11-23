@@ -3,11 +3,11 @@ import { DEVOTION_START, DEVOTION_TODAY_ON } from '@/lib/devotion';
 import type { Session } from '@supabase/supabase-js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { getMyAffiliate, getPackStats, shared } from '@/lib/sharedFetch';
+import { getMyAffiliate, getPackStats } from '@/lib/sharedFetch';
 import { hydratePackStore } from '@/lib/packStore';
 import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
-import { getAccessibleDogIds } from '@/lib/dogRights';
+import { loadUserDogsShared } from '@/hooks/usePackUser';
 
 export interface PackDog {
   id: string;
@@ -175,28 +175,11 @@ export function usePackIdentity(): PackIdentity {
         try {
           // B3c: zoznam ide z práv (`my_dog_rights()`), nie z vlastníctva. Majiteľovi
           // vráti tú istú množinu; pri `null` (RPC zlyhala) ostáva dnešný filter.
-          const accessIds = DEV_NOAUTH ? null : await getAccessibleDogIds();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          let identityQuery = DEV_NOAUTH ? null : (supabase as any)
-            .from('dogs')
-            .select('id, dog_name, cloudinary_main_url, created_at, life_status')
-            // paid + guest (hosť má psa, číslo a stenu; Matej 19. 11. 2026: „klikol som na foto psa — nemám žiadneho psa“),
-            // nie draft — link_my_dogs also links abandoned checkout drafts by
-            // email, so without this the header switcher lists a dog once per
-            // attempt (BELGA showed 3×: 1 paid + 2 drafts). Pack.tsx already
-            // filters the same way; keep the two in sync.
-            .in('payment_status', ['paid', 'guest']);
-          if (identityQuery) {
-            identityQuery = accessIds
-              ? identityQuery.in('id', accessIds)
-              : identityQuery.eq('user_id', s.user.id);
-          }
-          // B2 (15. 11. 2026): hook žije v každom `PackLayout`, teda sa spúšťa pri každom prechode
-          // medzi obrazovkami — psy išli na server 25× za 5 min prechádzky. Okno 30 s (zdieľaný sľub);
-          // kópia v zariadení ukazuje psov hneď, takže čerstvosť stačí na tomto rádovo.
-          const { data: dogRows } = identityQuery
-            ? await shared(`identity-dogs:${s.user.id}`, () => identityQuery.order('created_at', { ascending: true }) as Promise<{ data: PackDog[] | null }>, 30_000)
-            : { data: null };
+          // Audit 23. 11. 2026: ten istý zoznam psov už číta usePackUser (zdieľaný sľub `user-dogs:uid`) — jeden dotaz na domov.
+          const full = DEV_NOAUTH ? null : await loadUserDogsShared(s.user.id);
+          const dogRows: PackDog[] | null = full
+            ? [...full].sort((x, y) => String(x.created_at ?? '').localeCompare(String(y.created_at ?? '')))
+            : null;
           if (dogRows) {
             const fresh = dogRows.map(d => ({
               id: d.id,

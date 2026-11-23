@@ -22,7 +22,9 @@ import { LAPIS } from './navGoldSkin';
 import { AINUBIS } from './ainubisSkin';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { getPackStats } from '@/lib/sharedFetch';
+import { getPackStats, getUserShared } from '@/lib/sharedFetch';
+import { loadUserDogsShared } from '@/hooks/usePackUser';
+import { track } from '@/lib/analytics';
 import { openAinubis } from '@/lib/ainubisBus';
 import { IS_APP } from '@/lib/isApp';
 import { BUDDY_LIVE, APP_NEW } from '@/lib/packFlags';
@@ -76,15 +78,15 @@ function useTips(open: boolean, close: () => void): Tip[] {
     (async () => {
       const out: Tip[] = [];
       const go = (path: string) => () => { close(); navigate(path); };
-      const { data: s } = await supabase.auth.getSession();
-      const uid = s.session?.user?.id;
+      const { data: s } = await getUserShared(); // audit 23. 11. 2026: 1 cesta na auth server na okno, nie 2× pri každom otvorení
+      const uid = s.user?.id;
 
       // DOG ID — to isté percento ako pilulka na /pack/dogs (PROGRESS_STEPS + hasValue).
       if (uid) {
         try {
-          const { data: dogs } = await supabase.from('dogs').select('id, dog_name, pack_number')
-            .eq('user_id', uid).in('payment_status', ['paid', 'guest']).order('pack_number', { ascending: true });
-          const dog = dogs?.[0];
+          // psy zo zdieľaného sľubu (usePackUser/usePackIdentity už ich majú), nie ďalší dotaz na `dogs`
+          const dogs = ((await loadUserDogsShared(uid)) ?? []).filter((d) => d.user_id === uid);
+          const dog = dogs[0];
           if (dog) {
             const [{ readLatestForDogs, hasValue }, { PROGRESS_STEPS }] = await Promise.all([
               import('@/lib/dogEvents'), import('./dogQuiz'),
@@ -176,16 +178,17 @@ function useWelcomeCandidate(newest: NewDog[]): { dog: NewDog | null; welcome: (
     if (!APP_NEW) return;
     let cancelled = false;
     (async () => {
-      const { data: s } = await supabase.auth.getSession();
-      const uid = s.session?.user?.id;
+      const { data: s } = await getUserShared();
+      const uid = s.user?.id;
       if (!uid) return;
       try {
-        const { data: own } = await supabase.from('dogs').select('pack_number').eq('user_id', uid);
-        if (!cancelled) setMine((own ?? []).map((d) => d.pack_number as number).filter(Boolean));
+        const own = ((await loadUserDogsShared(uid)) ?? []).filter((d) => d.user_id === uid);
+        if (!cancelled) setMine(own.map((d) => d.pack_number as number).filter(Boolean));
       } catch { /* karta sa len neskryje pred vlastným psom */ }
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (supabase as any).rpc('my_dog_welcomes');
+        const { data, error } = await (supabase as any).rpc('my_dog_welcomes');
+        if (error) track('pack_rpc_error', { where: 'my_dog_welcomes', message: String(error.message ?? error.code ?? '') }); // UI: ostáva localStorage
         if (!cancelled && Array.isArray(data)) setWelcomed((w) => Array.from(new Set([...w, ...(data as number[])])));
       } catch { /* zostane localStorage */ }
     })();

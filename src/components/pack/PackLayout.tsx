@@ -21,6 +21,7 @@ import { TopActions } from './TopActions';
 import { WIZ } from './wizAnchors';
 import { PackWizard } from './PackWizard';
 import { PackKomnaty, KomnataKluc } from './PackKomnaty';
+import { PackScreenBoundary } from './PackScreenBoundary';
 import { KOMNATY_ON } from '@/lib/env';
 
 const WIZ_ON_HOST = typeof window !== 'undefined' && /^(www\.)?dogypt\.com$/.test(window.location.hostname);
@@ -206,7 +207,7 @@ export function PackLayout({ children, title, subtitle, onBack, backLabel, topLe
             )}
           </header>
         )}
-        <main>{children}</main>
+        <main><PackScreenBoundary>{children}</PackScreenBoundary></main>
         {/* rezerva pod obsahom, kým nad navom vykukuje jazýček prehrávača (`--pod-dock`, vault/PodPlayer.tsx) */}
         <div aria-hidden style={{ height: 'var(--pod-dock, 0px)' }} />
       </div>

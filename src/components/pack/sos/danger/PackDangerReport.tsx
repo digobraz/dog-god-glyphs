@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MAPY_API_KEY, MAPY_BASE, mapyTiles } from '@/lib/env';
+import { AID_ON, MAPY_API_KEY, MAPY_BASE, mapyTiles } from '@/lib/env';
 import { useLang } from '@/i18n/LanguageContext';
 import { countryISO3 } from '@/lib/countryGeo';
 import { MapAttribution, MAP_ATTR_CSS } from '@/components/pack/mapAttribution';
@@ -572,7 +572,7 @@ export default function PackDangerReport({ mode }: { mode: 'abuse' | 'poison' })
         <SosCard>
           <p className="sos-p"><b>{s('pack.sos.danger.report.poisonHelp')}</b></p>
           <div className="dgr-links">
-            <button type="button" onClick={() => navigate('/pack/sos/prva-pomoc')}>{s('pack.sos.danger.report.firstAid')}</button>
+            {AID_ON && <button type="button" onClick={() => navigate('/pack/sos/prva-pomoc')}>{s('pack.sos.danger.report.firstAid')}</button>}
             <button type="button" onClick={() => navigate('/pack/sos/pohotovost')}>{s('pack.sos.danger.report.er')}</button>
           </div>
         </SosCard>

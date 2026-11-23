@@ -10,7 +10,7 @@ const ROOT_MARGIN = '800px 0px';
 // Výška poslednej nameranej karty = odhad pre karty, ktoré sa ešte nekreslili.
 let lastCardH = 330;
 
-export function TripCardSlot({ children }: { children: () => ReactNode }) {
+export function TripCardSlot({ children, tripId }: { children: () => ReactNode; tripId?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
   const height = useRef(lastCardH);
@@ -22,12 +22,12 @@ export function TripCardSlot({ children }: { children: () => ReactNode }) {
     const io = new IntersectionObserver(([e]) => {
       if (!e.isIntersecting && el.offsetHeight > 0) height.current = lastCardH = el.offsetHeight;
       setNear(e.isIntersecting);
-    }, { root: el.closest('.trp-mlist'), rootMargin: ROOT_MARGIN });
+    }, { root: el.closest('.trp-mlist, .trp-cards-scroll'), rootMargin: ROOT_MARGIN });
     io.observe(el);
     return () => io.disconnect();
   }, []);
   return (
-    <div ref={ref} style={near ? undefined : { height: height.current, flexShrink: 0 }}>
+    <div ref={ref} data-trip-id={tripId} style={near ? undefined : { height: height.current, flexShrink: 0 }}>
       {near ? children() : null}
     </div>
   );

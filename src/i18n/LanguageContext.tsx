@@ -88,8 +88,20 @@ function loadPart(lang: LangCode, part: 'core' | 'pack'): Promise<void> {
 }
 
 /** Texty appky /pack pre aktívny jazyk (+ EN ako fallback). App.tsx s nimi čaká pred obrazovkou appky. */
+let packWanted = false;
+let enPackScheduled = false;
 export function ensurePackDict(): Promise<void> {
-  return Promise.all([loadPart('en', 'pack'), loadPart(readStoredLang(), 'pack')]).then(() => {});
+  packWanted = true;
+  const lang = readStoredLang();
+  // Aktívny jazyk hneď; EN fallback až po prvom vykreslení (jeden slovník menej pred obrazovkou).
+  // Kým EN nepríde, chýbajúci kľúč padne na `tx(kľúč, fallback)`; po príchode listener prekreslí.
+  if (lang !== 'en' && !enPackScheduled && !loaded.has('en:pack')) {
+    enPackScheduled = true;
+    const go = () => { void loadPart('en', 'pack'); };
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) (window as any).requestIdleCallback(go, { timeout: 3000 });
+    else setTimeout(go, 1500);
+  }
+  return loadPart(lang, 'pack');
 }
 
 /** Dotiahne jazyk, ktorý sa vykreslí ako prvý — main.tsx s ním počká na prvý render (len pre ne-EN). */
@@ -100,7 +112,7 @@ export function preloadActiveLang(): Promise<void> {
 /** Jadro jazyka; texty appky len vtedy, keď už sú pre EN (človek je v appke). */
 function loadLang(lang: LangCode): Promise<void> {
   const core = loadPart(lang, 'core');
-  return loaded.has('en:pack') ? Promise.all([core, loadPart(lang, 'pack')]).then(() => {}) : core;
+  return packWanted ? Promise.all([core, loadPart(lang, 'pack')]).then(() => {}) : core;
 }
 
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.

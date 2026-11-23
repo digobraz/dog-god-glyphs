@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { useNavigate } from 'react-router-dom';
 import { saveDraft } from '@/components/pack/sos/danger/dangerForm';
 import { DANGER_RADIUS } from '@/lib/danger';
+import { DANGER_ON } from '@/lib/env';
 import { SysIcon } from '@/components/pack/SysIcon';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
@@ -328,7 +329,8 @@ export function AddMapNotePanel({
 }: AddMapNotePanelProps) {
   const t = useT();
   const { lang } = useLang();
-  const subKinds = GROUP_KINDS[group];
+  // Otrava ide cez hlásenie SOS, ktoré existuje len pri DANGER_ON; inde druh v paneli nie je (odkaz by skončil na /pack).
+  const subKinds = DANGER_ON ? GROUP_KINDS[group] : GROUP_KINDS[group].filter((k) => k !== 'poison');
   const rule = radiusRule(kind);
   const [body, setBody] = useState('');
   const [paid, setPaid] = useState<boolean | null>(null);

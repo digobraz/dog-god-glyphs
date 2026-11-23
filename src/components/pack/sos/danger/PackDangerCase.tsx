@@ -21,6 +21,7 @@ import { AccessCard, CharCount, regionOf, useSubmitLock } from './dangerForm';
 import { authorityByCode } from '@/data/dangerAuthorities';
 import { SosCard, SosStyles, useBack, useSosT, type SosT } from '../sosShared';
 import type { SosKey } from '../sosTexts';
+import { AID_ON } from '@/lib/env';
 
 const K = (k: string) => `pack.sos.danger.case.${k}` as SosKey;
 const COMMENT_MAX = 600;
@@ -222,7 +223,7 @@ export default function PackDangerCase() {
             <a className="sos-cta sos-cta--red sos-cta--sm" href={`tel:${emergency}`}>{s(K(emergency === '112' ? 'call112' : 'call158'))}</a>
           )}
           {abuse && <p className="dgc-risk">{s(K('risk'))}</p>}
-          {!abuse && (
+          {!abuse && AID_ON && (
             <Link className="sos-row" style={{ ...PACK_BOX.row }} to="/pack/sos/prva-pomoc">
               <SysIcon name="sos-pomoc" size={32} />
               <span className="grow"><b>{s(K('poison.help'))}</b></span>

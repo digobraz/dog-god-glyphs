@@ -385,8 +385,31 @@ function KomnataSheet({ k, seen, onClose, onStart }: { k: Komnata; seen: Set<str
 
 // ─── PREHLIADKA PO KOMNATÁCH ─────────────────────────────────────────────────
 /** Obálka: obrazovky bez hostiteľa momentov (mapa, rovina AINUBIS) by odznak nikdy neukázali — vtedy si ho montujeme sami. */
+/** Nemá čo ukázať: prehliadka vypnutá alebo všetky odznaky + žiadna nová položka (stav z localStorage, synchrónne). */
+const nicNaUkazanie = () => {
+  if (wizOffLocal()) return true;
+  if (!ls.get(K_UID) || ss.get(K_AKT) || ss.get(K_POLICA)) return false;
+  const s = readSeenLocal();
+  return KOMNATY.every((x) => s.has(`odz:${x.id}`) && novePolozky(x, s).length === 0);
+};
+
 export function PackKomnaty(props: { dogs: PackDog[]; avatarUrl: string | null }) {
   const [vlastnyHost, setVlastnyHost] = useState(false);
+  const [zapnute, setZapnute] = useState(() => !nicNaUkazanie());
+  // Spustenie zvonka (↺ znova, chat, prehľad v JA): kurzor je už v sessionStorage, jadro ho pri montáži prečíta.
+  useEffect(() => {
+    if (zapnute) return undefined;
+    const on = () => setZapnute(true);
+    window.addEventListener(EV_START, on);
+    // Iný účet v tom istom prehliadači nesmie zdediť „hotovo“ (viď `cudziStav`) — jediné lokálne čítanie session.
+    let zrusene = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      const uid = data.session?.user?.id;
+      if (!zrusene && uid && ls.get(K_UID) !== uid) setZapnute(true);
+    });
+    return () => { zrusene = true; window.removeEventListener(EV_START, on); };
+  }, [zapnute]);
+  if (!zapnute) return null;
   return (
     <>
       <PackKomnatyJadro {...props} potrebujeHosta={() => { if (!listeners.size) setVlastnyHost(true); }} />
@@ -421,11 +444,11 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
   aktRef.current = akt;
   // Zápis výletu nemá udalosť → kým odznak mapy čaká, pozeráme sa raz za pár sekúnd (a pri zmene obrazovky).
   useEffect(() => {
-    if (vylet) return undefined;
+    if (vylet || off) return undefined;
     setVylet(maVlastnyVylet());
-    const iv = setInterval(() => { if (maVlastnyVylet()) setVylet(true); }, 4000);
+    const iv = setInterval(() => { if (!document.hidden && maVlastnyVylet()) setVylet(true); }, 4000);
     return () => clearInterval(iv);
-  }, [vylet, pathname]);
+  }, [vylet, off, pathname]);
   // Ťuk na zvitok (karta alebo „prečítané“) mimo prehliadky = otvoril zvitok.
   useEffect(() => {
     if (zvitok) return undefined;
@@ -438,10 +461,16 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
     return () => document.removeEventListener('click', on, true);
   }, [zvitok]);
   // Okná po jednom: kým je otvorené iné (pravidlá, moment, list), prehliadka čaká.
+  // MutationObserver namiesto intervalu 500 ms (audit 23. 11.): dialóg sa objaví/zmizne len zmenou DOM.
   useEffect(() => {
-    const iv = setInterval(() => setVolno(!cudzieOkno()), 500);
-    return () => clearInterval(iv);
-  }, []);
+    if (off) return undefined;
+    let t0: number | undefined;
+    const meraj = () => { t0 = undefined; setVolno(!cudzieOkno()); };
+    meraj();
+    const mo = new MutationObserver(() => { if (t0 === undefined) t0 = window.setTimeout(meraj, 120); });
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['role', 'aria-modal'] });
+    return () => { mo.disconnect(); window.clearTimeout(t0); };
+  }, [off]);
   useEffect(() => {
     const on = (e: Event) => setPct(Number((e as CustomEvent<number>).detail) || 0);
     window.addEventListener('dogypt:dogid-pct', on);
@@ -468,7 +497,10 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
 
   // Meno majiteľa, pes a jeho číslo pre privítanie. Vlastný dotaz, lebo identita lišty berie len
   // zaplatených psov a hosť (zadarmo od 14. 11.) by v nej nemal nič. Číslo patrí psovi, človek ho nesie.
+  // Lenivo: dotaz sa pustí až keď sa prvýkrát ukáže privítanie alebo pripomienka (nie pri každom načítaní obrazovky).
+  const treba = !!akt || pripomienka || polica !== null;
   useEffect(() => {
+    if (!treba) return;
     void supabase.auth.getSession().then(({ data: s }) => {
       const uid = s.session?.user?.id;
       if (!uid) return;
@@ -479,7 +511,7 @@ function PackKomnatyJadro({ dogs, avatarUrl, potrebujeHosta }: { dogs: PackDog[]
           if (data) setJa({ meno: data.owner_name ?? '', cislo: data.pack_number ?? null, pes: data.dog_name ?? '', foto: data.cloudinary_main_url ?? null });
         });
     });
-  }, []);
+  }, [treba]);
 
   const [consentDone, setConsentDone] = useState(() => !!getConsent());
   useEffect(() => {
