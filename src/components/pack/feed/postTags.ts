@@ -10,6 +10,11 @@ import { TAG_NATURE, type MePost } from '@/components/pack/profile/mePosts';
 export const POST_TAG_PREFIX = 't:';
 /** Najviac toľko pilulok na príspevok. */
 export const POST_TAG_MAX = 2;
+/** SNIFFER (23. 11. 2026): štítok „som otvorený zoznámeniu“. Nie je v `POST_TAGS` a do `POST_TAG_MAX` sa NEPOČÍTA —
+ *  píše sa vlastným prepínačom pod témami (`MeCompose.tsx`) a téma Sniffer vo feede ho filtruje (`FeedSniffer.tsx`). */
+export const SNIFFER_TAG = 't:sniffer';
+/** V téme Sniffer žije príspevok 30 dní od zverejnenia alebo od obnovenia (server: `list_sniffer_posts`). */
+export const SNIFFER_DAYS = 30;
 
 export interface PostTagDef {
   /** hodnota v `posts.tags` */

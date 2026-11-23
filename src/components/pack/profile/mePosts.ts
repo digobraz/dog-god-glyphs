@@ -138,6 +138,8 @@ export async function publish(opts: {
   nature?: boolean;
   /** Pilulky tém (`t:trip`…, FEED 2 krok 5) — voliteľné, najviac 2; nahrádzajú otázku `nature`. */
   topics?: string[];
+  /** SNIFFER (23. 11. 2026): štítok `t:sniffer` mimo limitu tém; `pos` = hrubá poloha autora (server ju zaokrúhli a nikdy nevydá). */
+  sniffer?: { pos: { lat: number; lon: number } | null };
   /** „Fotka 2/5" počas nahrávania. */
   onProgress?: (done: number, total: number) => void;
 }): Promise<void> {
@@ -147,14 +149,19 @@ export async function publish(opts: {
   if (opts.mode === 'album' && opts.title?.trim()) attach.title = opts.title.trim();
   if (opts.place?.name.trim()) attach.place = { ...opts.place, name: opts.place.name.trim() };
   const tag = opts.mode === 'moment' ? TAG_MOMENT : opts.mode === 'album' ? TAG_ALBUM : TAG_POST;
-  const tags = opts.mode === 'post' ? [tag, ...(opts.nature ? [TAG_NATURE] : []), ...(opts.topics ?? []).slice(0, 2)] : [tag];
+  const tags = opts.mode === 'post' ? [tag, ...(opts.nature ? [TAG_NATURE] : []), ...(opts.topics ?? []).slice(0, 2), ...(opts.sniffer ? ['t:sniffer'] : [])] : [tag];
   const base = { author_id: opts.author || opts.uid, body: opts.body.trim(), tags, attach, visibility: opts.visibility };
   const rows = opts.mode === 'moment' ? photos.map((p) => ({ ...base, photos: [p] })) : [{ ...base, photos }];
-  const { error } = await db.from('posts').insert(rows);
+  const { data: made, error } = await db.from('posts').insert(rows).select('id');
   if (error) {
     // Riadok nevznikol ⇒ fotky nepatria nikomu. Zmazať, inak osirejú (audit 30. 10. 2026).
     void destroyPhotos(photos);
     throw error;
+  }
+  // Poloha Snifferu ide zvlášť (vedľajšia tabuľka, klient ju nikdy nečíta); zlyhanie príspevok nezhodí — bez polohy sa len radí podľa času.
+  if (opts.sniffer && opts.mode === 'post') {
+    const id = (made as Array<{ id: string }> | null)?.[0]?.id;
+    if (id) await db.rpc('set_post_sniffer', { p_post: id, p_lat: opts.sniffer.pos?.lat ?? null, p_lon: opts.sniffer.pos?.lon ?? null }).catch(() => {});
   }
   emitPostsChanged();
 }
@@ -195,7 +202,7 @@ const OPEN = 'dogypt:compose';
 // PREDVYPLNENIE (Matej 20. 11. 2026: dobrú správu o nájdenom psovi zdieľať aj DO NÁŠHO FEEDU, nie len von):
 // text, fotka a pes idú do okna príspevku, človek ich ešte upraví a odošle sám. `pending` drží otvorenie,
 // kým lišta (`PackLayout`) nie je na scéne — stránka pátrania beží mimo nej, preto sa najprv ide na /pack.
-export type ComposePrefill = { body?: string; photoUrl?: string | null; dogIds?: string[] };
+export type ComposePrefill = { body?: string; photoUrl?: string | null; dogIds?: string[]; /** zapnúť prepínač SNIFFER (tlačidlo „Aj ja hľadám parťáka“) */ sniffer?: boolean };
 let prefill: ComposePrefill | null = null;
 let pending: ComposeMode | null = null;
 export const takeComposePrefill = (): ComposePrefill | null => { const p = prefill; prefill = null; return p; };

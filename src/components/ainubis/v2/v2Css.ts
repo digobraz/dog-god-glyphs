@@ -139,7 +139,9 @@ ${P} .av2-mode img.av{width:30px;height:30px;border-radius:50%;object-fit:cover;
 ${P} .av2-mode span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 ${P} .av2-mode .pre{display:none;font-style:normal;}
 ${PC}{${P} .av2-mode .pre{display:inline;}}
-@media (max-width:${AV2_PC_MIN - 1}px){${P} .av2-opts{gap:6px;} ${P} .av2-mode{max-width:112px;} ${P} .av2-mode.mdl{max-width:96px;}}
+/* Mobil: „Pre koho“ berie celý zvyšok riadku (medzera .sp zaniká) — pevný strop 112 px orezal „Všeobecne“
+   vo všetkých jazykoch a Odoslať trčalo z rámika. .av2-opts v selektore = prebiť .av2 .pk-b3 (flex:none). */
+@media (max-width:${AV2_PC_MIN - 1}px){${P} .av2-cbox{padding:12px 10px 10px;} ${P} .av2-opts{gap:4px;} ${P} .av2-opts .sp{display:none;} ${P} .av2-opts .av2-mode{flex:1 1 auto;min-width:0;max-width:none;padding:0 8px 0 6px;gap:4px;font-size:12px;} ${P} .av2-opts .av2-mode.mdl{flex:0 0 auto;max-width:96px;padding:0 8px;}}
 ${P} .av2-send{width:48px;height:44px;--b3-r:14px;}
 ${P} .av2-att{display:flex;align-items:center;gap:8px;padding:2px 2px 0;}
 ${P} .av2-att button{width:36px;height:36px;--b3-r:50%;}

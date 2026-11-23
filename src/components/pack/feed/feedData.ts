@@ -14,7 +14,7 @@
 //      funkcia nevydáva meno/fotku človeka podľa `user_id` (zámok z `get_member_profiles`, adresa člena je
 //      poradové číslo). Treba RPC `list_feed_moments()` s menom, fotkou a číslom psa.
 //    (Cudzie PRÍSPEVKY a fotka autora výletu prišli 26. 10. 2026 — `useFeedPosts`, `useTripAuthors` nižšie.)
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import type { MePost } from '@/components/pack/profile/mePosts';
@@ -53,6 +53,117 @@ function readFeedTrips(): FeedTrip[] {
       };
     })
     .sort((a, b) => b.at - a.at);
+}
+
+// ── POLOHA ČITATEĽA + VÝLETY Z MAPY V OKOLÍ (Sniffer vo feede, 23. 11. 2026) ─────────────────────────
+// Poloha sa NIKDY nepýta sama pri otvorení feedu: berie sa, len keď je povolenie už udelené (Permissions API),
+// alebo keď človek ťukne „Zobraziť vzdialenosť“. Drží sa zaokrúhlená (0,01° ≈ 1 km) a do servera ide len takto.
+export interface FeedPos { lat: number; lon: number }
+const POS_KEY = 'dogypt-feed-pos-v1';
+const POS_TTL = 6 * 3_600_000;
+const coarse = (n: number) => Math.round(n * 100) / 100;
+function readPos(): FeedPos | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(POS_KEY) || 'null') as { lat: number; lon: number; at: number } | null;
+    return v && Date.now() - v.at < POS_TTL ? { lat: v.lat, lon: v.lon } : null;
+  } catch { return null; }
+}
+const askGeo = (): Promise<FeedPos | null> => new Promise((res) => {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) { res(null); return; }
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
+      const pos = { lat: coarse(p.coords.latitude), lon: coarse(p.coords.longitude) };
+      try { localStorage.setItem(POS_KEY, JSON.stringify({ ...pos, at: Date.now() })); } catch { /* plné úložisko */ }
+      res(pos);
+    },
+    () => res(null), { timeout: 8000, maximumAge: 3_600_000, enableHighAccuracy: false });
+});
+
+/** `ask()` vyvolá systémovú otázku o polohe (len po ťuknutí); `canAsk` = poloha chýba a nebola odmietnutá. */
+export function useFeedPos(): { pos: FeedPos | null; canAsk: boolean; ask: () => void } {
+  const [pos, setPos] = useState<FeedPos | null>(readPos);
+  const [denied, setDenied] = useState(false);
+  useEffect(() => {
+    if (!navigator.geolocation || !navigator.permissions?.query) return;
+    let alive = true;
+    void navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((st) => {
+      if (!alive) return;
+      if (st.state === 'denied') setDenied(true);
+      if (st.state === 'granted') void askGeo().then((p) => { if (alive && p) setPos(p); });
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const ask = useCallback(() => { void askGeo().then((p) => { if (p) setPos(p); else setDenied(true); }); }, []);
+  return { pos, canAsk: !pos && !denied && typeof navigator !== 'undefined' && !!navigator.geolocation, ask };
+}
+
+const kmBetween = (a: FeedPos, lat: number, lon: number): number => {
+  const r = (d: number) => (d * Math.PI) / 180;
+  const h = Math.sin(r(lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(lat)) * Math.sin(r(lon - a.lon) / 2) ** 2;
+  return 12742 * Math.asin(Math.min(1, Math.sqrt(h)));
+};
+const NEAR_KM = 80;
+const NEAR_MAX = 10;
+const NO_POS_MAX = 6;
+
+/**
+ * VÝLETY Z MAPY V OKOLÍ (Matej 23. 11. 2026, bod g): náš zber (`HERO_TRAILS`, to, čo je na mape) s fotkou do 80 km od čitateľa,
+ * najbližšie prvé. Bez polohy ostane pár najlepšie hodnotených, aby feed nebol prázdny. Karta nemá autora ani čas (ako v hľadaní).
+ * Dataset je veľký, preto ide ako samostatný chunk až keď feed beží.
+ */
+export function useNearbyMapTrips(pos: FeedPos | null, skip: Set<string>): FeedTrip[] {
+  const [all, setAll] = useState<HeroTrail[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void import('@/data/heroTrails.generated').then(({ HERO_TRAILS }) => {
+      if (alive) setAll(HERO_TRAILS.filter((tr) => !tr.id.startsWith('plan-') && !tr.id.startsWith('ovr-') && (tr.photos?.length ?? 0) > 0));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  const lat = pos?.lat, lon = pos?.lon;
+  return useMemo(() => {
+    const mk = (trail: HeroTrail): FeedTrip => ({ trail, at: 0, mine: false, author: (trail.author || '').trim() || 'Hekthor & Matej' });
+    const free = all.filter((tr) => !skip.has(tr.id));
+    if (lat == null || lon == null) return [...free].sort((a, b) => b.stars - a.stars).slice(0, NO_POS_MAX).map(mk);
+    const here = { lat, lon };
+    return free
+      .map((tr) => ({ tr, d: tr.path?.[0] ? kmBetween(here, tr.path[0][0], tr.path[0][1]) : Infinity }))
+      .filter((x) => x.d <= NEAR_KM)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, NEAR_MAX)
+      .map((x) => mk(x.tr));
+  }, [all, lat, lon, skip]);
+}
+
+// ── SNIFFER (príspevky so štítkom `t:sniffer`, server `list_sniffer_posts`) ───────────────────────
+export interface SnifferRow { fp: FeedPost; km: number | null; mine: boolean; expired: boolean; at: string }
+
+/** Téma Sniffer + polička „Hľadajú parťáka“. Server vráti len km od čitateľa, nikdy polohu autora; bez polohy radí podľa času.
+ *  Moje príspevky sú v zozname aj po 30 dňoch (s `expired`), aby sa dali obnoviť. */
+export function useSnifferPosts(enabled: boolean, pos: FeedPos | null): { rows: SnifferRow[]; reload: () => void; ready: boolean } {
+  const [rows, setRows] = useState<SnifferRow[]>([]);
+  const [ready, setReady] = useState(false);
+  const lat = pos?.lat, lon = pos?.lon;
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const load = useCallback(async () => {
+    if (!enabled) return;
+    const { data, error } = await db.rpc('list_sniffer_posts', { p_lat: lat ?? null, p_lon: lon ?? null, p_limit: 60 });
+    if (!alive.current) return;
+    setReady(true);
+    if (error) { setRows([]); return; }
+    setRows(((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+      fp: postOf(r), km: r.km == null ? null : Number(r.km), mine: r.mine === true, expired: r.expired === true, at: String(r.sniffer_at ?? r.created_at),
+    })));
+  }, [enabled, lat, lon]);
+  useEffect(() => { void load(); }, [load]);
+  return { rows, reload: () => { void load(); }, ready };
+}
+
+/** „Obnoviť“ = ďalších 30 dní v téme Sniffer. */
+export async function renewSniffer(postId: string): Promise<boolean> {
+  const { data, error } = await db.rpc('renew_post_sniffer', { p_post: postId });
+  return !error && data === true;
 }
 
 /** Najnovšie výlety členov. Číta lokálnu zrkadlovú kópiu a prekreslí sa po dobehnutí hydratácie. */
