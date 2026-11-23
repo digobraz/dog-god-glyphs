@@ -260,8 +260,20 @@ async function render(browser, page, base, fontsCss) {
   // onlyPath: štýly stránky sa vložia parserom (blokujú vykreslenie) LEN na jej ceste — index.html je SPA záloha všetkých.
   const linkTags = [...links].map((h) => `<link rel="stylesheet" href="${h}">`).join('');
   // Len homepage — /login, /terms a psy sú vyladené bez toho (merané 7.–8. 10.), nemeníme ich.
+  // + prednačítanie obrázkov prvého telefónu (rám + snímka) — vkladajú sa až zo šablóny, takže by ich
+  //   prehliadač objavil neskoro (PageSpeed: „request is not discoverable“, LCP 3–6 s podľa náhody).
+  const heroImg = {};
+  for (const t of tpls) {
+    const m = t.match(/^<template data-pre="([a-z]+)"/); if (!m) continue;
+    const cur = t.slice(t.indexOf('ph cur'), t.indexOf('ph cur') + 1500);
+    heroImg[m[1]] = [...cur.matchAll(/src="(\/[^"]+)"/g)].map((x) => x[1]).filter((u, i, all) => all.indexOf(u) === i).slice(0, 2);
+  }
+  const preImg = page.home && Object.keys(heroImg).length
+    ? `var L=(localStorage.getItem('dogypt_lang')||(navigator.language||'en')).toLowerCase().slice(0,2),M=${JSON.stringify(heroImg)},I=M[L]||M.en||[];`
+      + `for(var i=0;i<I.length;i++)document.write('<link rel="preload" as="image" fetchpriority="high" href="'+I[i]+'">');`
+    : '';
   const headLinks = page.onlyPath && linkTags
-    ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)})document.write(${JSON.stringify(linkTags)})</script>`
+    ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)}){document.write(${JSON.stringify(linkTags)});try{${preImg}}catch(e){}}</script>`
     : '';
   const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>${headLinks}`).replace('<div id="root"></div>', inject);
   // Stráž: výberový skript je JS v šablóne — `\d` v nej ticho stratí lomítko (stalo sa 8. 10.:
