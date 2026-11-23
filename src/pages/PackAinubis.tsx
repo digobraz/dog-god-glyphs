@@ -1613,7 +1613,8 @@ function AinubisScreen({ id, pv }: { id: PackIdentity; pv: ReturnType<typeof use
           queue={queue} onNext={nextListen} lock={pv ? () => lockAction() : undefined} />
       )}
       {SCROLL_DEMO && knowOpen && !openZ && (
-        <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial}
+        <VaultKnowledge scrolls={scrolls} lang={lang} avatarUrl={id.avatarUrl}
+          dogUrl={(id.dogs ?? []).find((d) => d.cloudinary_main_url)?.cloudinary_main_url as string | undefined} avatarInitial={id.avatarInitial}
           ownerName={id.session?.user?.email ? firstNameFrom(id.session.user.email, (id.session.user.user_metadata?.full_name || id.session.user.user_metadata?.name) as string | undefined) : id.avatarInitial}
           who={(id.dogs ?? []).map((d) => d.dog_name).filter(Boolean).join(' · ')}
           worldName={(key) => names[VAULT_WORLDS.findIndex((w) => w.key === key)] || key}

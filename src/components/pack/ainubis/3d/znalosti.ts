@@ -31,9 +31,8 @@ ${H} .vkw-av{width:56px;height:56px;flex:none;display:flex;align-items:center;ju
 ${H} .vkw-who{flex:1;min-width:0;}
 ${H} .vkw-who b{display:block;font:400 24px/1.1 ${MU};color:${A.ink};overflow-wrap:anywhere;}
 ${H} .vkw-who small{display:block;margin-top:4px;${M3.lab}}
-${H} .vkw-lv{position:relative;flex:none;width:64px;height:64px;padding:0;background:none;border:0;cursor:pointer;}
-${H} .vkw-lv img{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 3px 2px var(--ai-sh));}
-${H} .vkw-lv i{position:absolute;right:-2px;bottom:-2px;min-width:24px;height:24px;padding:0 4px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(180deg,#B4F4FB,${A.cyan});border:2px solid #04121A;color:#04121A;font:600 14px/1 ${UI};font-style:normal;}
+${H} .vkw-avw{position:relative;flex:none;margin-top:24px;}
+${H} .vkw-cap{position:absolute;left:50%;top:-34px;width:60px;height:60px;object-fit:contain;transform:translateX(-50%) rotate(-8deg);filter:drop-shadow(0 3px 2px var(--ai-sh));pointer-events:none;}
 ${H} .vkw-xp{position:relative;z-index:2;display:block;margin:0 12px;padding:8px 12px;text-align:left;cursor:pointer;color:${A.ink};font-family:${UI};${M3.box}border:2.5px solid var(--ai-edge);}
 ${H} .vkw-xpr{display:flex;align-items:center;gap:8px;font:600 20px/1 ${UI};font-variant-numeric:tabular-nums;}
 ${H} .vkw-xpr .nx{opacity:.6;}

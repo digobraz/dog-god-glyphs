@@ -163,8 +163,10 @@ ${MEDALLION_CSS}
 
 type KnowSheet = 'level' | 'read' | 'worlds' | 'circles' | 'going' | 'liked' | 'saved' | 'mine';
 
-export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, ownerName, worldName, onClose, onOpen }: {
+export function VaultKnowledge({ scrolls, lang, avatarUrl, dogUrl, avatarInitial, who, ownerName, worldName, onClose, onOpen }: {
   scrolls: DemoScroll[]; lang: string; avatarUrl: string | null; avatarInitial: string; who: string; ownerName: string;
+  /** Fotka psa — nesie čiapku Učňa (Matej 23. 11.). Bez psa fotka človeka. */
+  dogUrl?: string | null;
   /** Meno sveta z i18n (`pack.ainubis.world.<key>`) — to isté, čo píše mozog. */
   worldName: (key: string) => string;
   onClose: () => void; onOpen: (id: string) => void;
@@ -342,12 +344,13 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
               dangerouslySetInnerHTML={{ __html: libSvg }} />
             <div className="vkw-hud">
               <button type="button" className="vkw-hudb" onClick={openLevel} aria-label={learnerName}>
-                {avatarUrl ? <img className="vkw-av" src={avatarUrl} alt="" /> : <span className="vkw-av">{avatarInitial}</span>}
+                {/* ČIAPKA UČŇA SEDÍ NA FOTKE PSA, BEZ ČÍSLA (Matej 23. 11. 2026: „čiapka pri učňovi pri mozgu zvitkoch dajme bez čísla
+                    a ako keby nad fotku psa“). Číslo levelu nesie pás pod tým. */}
+                <span className="vkw-avw">
+                  {(dogUrl || avatarUrl) ? <img className="vkw-av" src={(dogUrl || avatarUrl) as string} alt="" /> : <span className="vkw-av">{avatarInitial}</span>}
+                  <img className="vkw-cap" src={learnerImg(Math.max(1, learner.level))} alt="" style={learner.level ? undefined : { opacity: 0.5 }} />
+                </span>
                 <span className="vkw-who"><b>{ownerName}</b><small>{learner.level ? learnerLvName(tx, learner.level) : learnerName}</small></span>
-              </button>
-              <button type="button" className="vkw-lv" onClick={openLevel} aria-label={`${learnerName} ${learner.level}`}>
-                <img src={learnerImg(Math.max(1, learner.level))} alt="" style={learner.level ? undefined : { opacity: 0.5 }} />
-                <i>{learner.level}</i>
               </button>
             </div>
             <button type="button" className="vkw-xp" onClick={openLevel} aria-label={learnerName}>
