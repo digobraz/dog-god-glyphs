@@ -140,8 +140,8 @@ const GROUPS: Group[] = [
       // sú popupy nad oknom (FlowModal), pokladňa pýta e-mail. Otvorené: fotky Hektora z labu.
       { name: '9 · Odhalenie + odkaz', path: '/heroglyph/reveal', state: 'done' },
       // 17. 11. 2026 — Matejov test v testovacej appke: POKLADŇA €11 a ZADRŽANIE sú od 15. 11. preč
-      // (`/checkout` presmeruje na členské). Koniec flowu = DOBROVOĽNÉ ČLENSKÉ (Veriaci · Posol · Staviteľ ·
-      // Vezír · Faraón, predvolený Posol) → VITAJ s „Otvoriť appku“ (/pack; po vydaní /get, `lib/appStores.ts`).
+      // (`/checkout` presmeruje na členské). Koniec flowu = DOBROVOĽNÉ ČLENSKÉ (Veriaci · Kazateľ · Apoštol ·
+      // Prorok · Vezír, predvolený Kazateľ) → VITAJ s „Otvoriť appku“ (/pack; po vydaní /get, `lib/appStores.ts`).
       // „Zapísať na stenu“ zaniklo: /wall nový web presmeroval na FAQ. Stav WIP, kým to Matej neprejde znova.
       // 19. 11. 2026 — po Matejovom teste na appdev: meno v otázkach NARODENIE/STAV, svorka bez pilulky krajiny
       // + šípka na fotku, plemeno „povinné“, výrez fotky na vlastnú adresu, animácia ukladania (bez zlata),

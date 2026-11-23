@@ -69,7 +69,7 @@ const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: nu
   { ax: 'ax3', scene: `${A}/vyjavy/ucen.webp`, start: 0, n: UCEN_PCT.length, img: (i) => `ucen-${i + 1}.webp`, cap: (i, c) => (i === 0 ? c('uc_first') : `${UCEN_PCT[i]} ${c('uc_vault')}`) },
 ];
 
-/** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Kňaz, perleť s ružovým rámom (Matej 7. 11.); 4 = Faraón; 5 = Člen tímu sa do rebríčka nedáva. */
+/** Vstupné pri Dogypťanovi: index = `dogyptan-N.webp` aj kľúč názvu `tN`. 2 = Apoštol (id knaz), perleť s ružovým rámom (Matej 7. 11.); 4 = Vezír (id farao); 5 = Člen tímu sa do rebríčka nedáva. */
 const CITIZEN_PRICES = ['€0', '€3,99', '€7,99', '€11,99', '€111+'];
 /** CTA pri Dogypťanovi vedie na víziu v `/story` (Matej 10. 11.). */
 const VISION_HREF = '/story#vision';
@@ -445,7 +445,7 @@ export default function AppWeb() {
   const [trOn, setTrOn] = useState(false);
 
   /* VSTUPNÉ (E4, 11. 11.): ťuk na kartu = výber (lapis rám) + otočenie; CTA platí za vybranú hodnosť.
-     Predvolený KŇAZ (odporúčané). Faraón: suma + mesačne / raz a navždy. */
+     Predvolený APOŠTOL (id knaz, odporúčané). Vezír (id farao): suma + mesačne / raz a navždy. */
   const [pick, setPick] = useState(2);
   const [fAmt, setFAmt] = useState<number>(111);
   const [fKind, setFKind] = useState<'month' | 'once'>('month');

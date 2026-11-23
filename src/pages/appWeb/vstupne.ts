@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/env';
 
 export type Rank = 'akolyta' | 'knaz' | 'vezir' | 'farao';
-/** Poradie kariet na webe = index (0 Veriaci … 4 Faraón). */
+/** Poradie kariet na webe = index (0 Veriaci … 4 Vezír (id farao)). */
 export const RANK_OF_CARD: (Rank | null)[] = [null, 'akolyta', 'knaz', 'vezir', 'farao'];
 /** Sumy FARAÓNA — musia sedieť s `FARAO_AMOUNTS` v `_shared/vstupne.ts` (667, nie 666). */
 export const FARAO_AMOUNTS = [111, 222, 333, 667, 999] as const;

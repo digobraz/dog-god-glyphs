@@ -31,7 +31,7 @@ import { SysIcon } from '@/components/pack/SysIcon';
 import { useMySeal } from '@/components/pack/profile/sealStore';
 import { DogSeal, sealLabel } from '@/components/pack/profile/dogSeal';
 
-/** Najnižšia platená hodnosť (Posol, `vstupne.ts` priceTable) — z nej sa rátajú mesačné náklady (Matej 19. 11.: „dajme ten tier 3,99“). */
+/** Najnižšia platená hodnosť (Kazateľ, `vstupne.ts` priceTable) — z nej sa rátajú mesačné náklady (Matej 19. 11.: „dajme ten tier 3,99“). */
 const POSOL_EUR = 3.99;
 
 /** 🔴 LIVE LEN NA MATEJOVO VÝSLOVNÉ „OK" (24. 10. 2026: *„nabudúce to takto nerob bez výslovného súhlasu a návrhu
@@ -306,7 +306,7 @@ export function MisiaBody() {
     { k: 'vet', icon: 'vet', color: T.partHelp, eur: null },
   ];
   const run1 = prevadzkaMesacne();
-  // Koľko členov na najnižšej hodnosti (Posol 3,99 € mesačne, čisté po poplatku Stripe) zaplatí paušálne výdaje; dnes = platiaci členovia.
+  // Koľko členov na najnižšej hodnosti (Kazateľ 3,99 € mesačne, čisté po poplatku Stripe) zaplatí paušálne výdaje; dnes = platiaci členovia.
   const goalN = Math.ceil(run1.spolu / (POSOL_EUR - giftFee(POSOL_EUR, true)));
   const givers = Math.min(dash?.supporters ?? 0, goalN);
 
@@ -510,7 +510,7 @@ function AllBody({ sec, tx, eur, ins, rozvoj, pomoc, NODE_TXT, onGive }: {
   useEffect(() => { if (sec !== 'in') refs[sec].current?.scrollIntoView({ block: 'start' }); }, [sec]); // eslint-disable-line react-hooks/exhaustive-deps
   const run = prevadzkaMesacne();
   const P: Record<NodeKey, string> = {
-    rank: IS_APP ? '' : tx('pack.misia.rank.p', 'Voluntary membership: Believer, Messenger, Builder, Vizier, Pharaoh. A Believer is free, higher ranks carry the pack monthly.'),
+    rank: IS_APP ? '' : tx('pack.misia.rank.p', 'Voluntary membership: Believer, Preacher, Apostle, Prophet, Vizier. A Believer is free, higher ranks carry the pack monthly.'),
     gift: IS_APP ? '' : tx('pack.misia.gift.p', 'A voluntary gift, monthly or once. It unlocks nothing — that is why it is a gift, not a membership. After the Stripe fee all of it goes to growing DOGYPT.'),
     merch: tx('pack.misia.merch.p', 'Shirts, patches and things for dogs. What they earn goes to the treasury.'),
     more: tx('pack.misia.more.p', 'We will only add sources that need no ads and no investors.'),

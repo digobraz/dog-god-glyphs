@@ -34,7 +34,7 @@ import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 //             → ULOŽENIE: `registerFreeInApp` = `create-checkout tier:'guest'` (pes ako hosť, €0)
 //               + kód na e-mail (`app-login send`)
 //             → KÓD: `app-login verify` → `setSession` (vznikne účet; hodnosť potrebuje prihláseného)
-//             → VSTUPNÉ: Veriaci €0 = ďalej zadarmo · Akolyta/Kňaz/Vezír mesačne · Faraón mesačne/raz
+//             → VSTUPNÉ: Veriaci €0 = ďalej zadarmo · Kazateľ/Apoštol/Prorok mesačne · Vezír (id farao) mesačne/raz
 //               (`pages/appWeb/vstupne.ts` → edge `vstupne`, TEN ISTÝ volaný ako web `/app#badges`)
 //             → `/heroglyph/welcome?free=1` (alebo `?rank=` po zaplatení).
 //   Návrat zo Stripe = `?vstupne=cs_…` (úspech) / `?vstupne=zrusene` na tejto istej routе.
@@ -58,7 +58,7 @@ type Phase = 'boot' | 'mail' | 'saving' | 'code' | 'ranks';
 type SaveErr = 'photo' | 'email' | 'save' | 'send';
 
 const eur = (n: string, lang: string) => (lang === 'sk' || lang === 'cs' ? n : n.replace(',', '.'));
-/** Cena riadku (Faraón „od €111", kým nie je vybraný). */
+/** Cena riadku (Vezír „od €111", kým nie je vybraný). */
 const PRICES = ['', '3,99', '7,99', '11,99'];
 
 export function FlowVstupneScreen() {

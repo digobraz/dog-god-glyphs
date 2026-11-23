@@ -682,7 +682,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  ax2p: { en: 'A dog naturally pulls you outside and is often the reason for the most beautiful adventures of your life. Wandering together in nature is not only about unforgettable experiences, but also about meeting new people, discovering new places and better health.', sk: 'Pes ťa prirodzene vytiahne von a je často dôvodom tých najkrajších dobrodružstiev v živote. Spoločné putovanie v prírode nie je len o nezabudnuteľných zážitkoch, ale aj o spoznávaní nových ľudí, lokalít a pevnejšom zdraví.' },
  ax3: { en: 'Disciple', sk: 'Učeň' },
  ax3p: { en: 'Feeling helpless at the vet is every dog lover\'s nightmare. That\'s why every Dogyptian is entitled to learning through play. Verified, practical knowledge translated into human language, which will extend your life together and improve its quality.', sk: 'Bezmocnosť u veterinára je nočnou morou každého psíčkara. Každý Dogypťan má preto nárok na školu hrou. Overené, praktické a do ľudskej reči preložené znalosti, ktoré predĺžia váš spoločný život a zlepšia jeho kvalitu.' },
- t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Messenger', sk: 'Posol' }, t2: { en: 'Builder', sk: 'Staviteľ' }, t3: { en: 'Vizier', sk: 'Vezír' }, t4: { en: 'Pharaoh', sk: 'Faraón' },
+ t0: { en: 'Believer', sk: 'Veriaci' }, t1: { en: 'Preacher', sk: 'Kazateľ' }, t2: { en: 'Apostle', sk: 'Apoštol' }, t3: { en: 'Prophet', sk: 'Prorok' }, t4: { en: 'Vizier', sk: 'Vezír' },
  e_ai: { en: 'Your personal mentor', sk: 'Tvoj osobný mentor' },
  h_ai_a: { en: 'Dog science. In', sk: 'Psia veda. V' }, h_ai_b: { en: 'plain', sk: 'ľudskej' }, h_ai_c: { en: 'language.', sk: 'reči.' },
  ai_kick: { en: 'Be confident with AINUBIS', sk: 'Buď si istý. S AINUBISom.' },
@@ -765,7 +765,7 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  tp1: { en: 'More trip photos and PAWMATE: a second person for your dog.', sk: 'Viac fotiek z výletov a PAWMATE: druhý človek k tvojmu psovi.' },
  tp2: { en: 'Plus a tailored diet plan and more questions for AINUBIS.', sk: 'K tomu výživa na mieru a viac otázok pre AINUBISa.' },
  tp3: { en: 'The highest limits for AINUBIS and photos. You keep the app alive.', sk: 'Najvyššie stropy na AINUBISa a fotky. Držíš appku pri živote.' },
- tp4: { en: 'Monthly, or once and forever. Vizier benefits, the highest seal and the thanks of the whole empire.', sk: 'Mesačne, alebo raz a navždy. Výhody Vezíra, najvyššia pečať a vďaka celej ríše.' },
+ tp4: { en: 'Monthly, or once and forever. Prophet benefits, the highest seal and the thanks of the whole empire.', sk: 'Mesačne, alebo raz a navždy. Výhody Proroka, najvyššia pečať a vďaka celej ríše.' },
  // ČO TÝMTO ROBÍŠ — mini veta pod cenou, vidno stále (Matej 11. 11.: „ku každému by patrila veta, toto vyber, ak chápeš“)
  tw0: { en: 'You use the app for you and your dog.', sk: 'Appku používaš pre seba a svojho psa.' },
  tw1: { en: 'You help cover the running costs: servers, maps, AI.', sk: 'Pomáhaš platiť prevádzku: servery, mapy, AI.' },
@@ -776,9 +776,9 @@ export const COPY3: Record<string, Record<Lang2, string>> = {
  // Formát: položky oddelené „|“, prvý znak + = má, - = nemá. Čísla len rozhodnuté (fotky na výlet 5 / 15).
  bk0: { en: '+The whole app: trips, map, DOG ID, SOS|+5 photos per trip|+AINUBIS with a basic limit|-PAWMATE: a second person for your dog|-Tailored diet plan', sk: '+Celá appka: výlety, mapa, DOG ID, SOS|+5 fotiek na jeden výlet|+AINUBIS so základným limitom|-PAWMATE: druhý človek k psovi|-Výživa na mieru' },
  bk1: { en: '+Everything a Believer has|+15 photos per trip|+PAWMATE: a second person for your dog, with their own account|+More questions for AINUBIS|-Tailored diet plan', sk: '+Všetko, čo má Veriaci|+15 fotiek na jeden výlet|+PAWMATE: druhý človek k tvojmu psovi s vlastným kontom|+Viac otázok pre AINUBISa|-Výživa na mieru' },
- bk2: { en: '+Everything a Messenger has|+A diet plan tailored to your dog|+Even more questions for AINUBIS|+Bigger photo storage', sk: '+Všetko, čo má Posol|+Výživa na mieru pre tvojho psa|+Ešte viac otázok pre AINUBISa|+Väčšie úložisko na fotky' },
- bk3: { en: '+Everything a Builder has|+The highest limits for AINUBIS and photos|+Part of your membership feeds dogs in need', sk: '+Všetko, čo má Staviteľ|+Najvyššie limity na AINUBISa aj fotky|+Časť tvojho členského nakŕmi psy v núdzi' },
- bk4: { en: '+Everything a Vizier has|+The highest seal in the whole empire|+Monthly, or once and forever|+The thanks of the whole empire', sk: '+Všetko, čo má Vezír|+Najvyššia pečať v celej ríši|+Mesačne, alebo raz a navždy|+Vďaka celej ríše' },
+ bk2: { en: '+Everything a Preacher has|+A diet plan tailored to your dog|+Even more questions for AINUBIS|+Bigger photo storage', sk: '+Všetko, čo má Kazateľ|+Výživa na mieru pre tvojho psa|+Ešte viac otázok pre AINUBISa|+Väčšie úložisko na fotky' },
+ bk3: { en: '+Everything an Apostle has|+The highest limits for AINUBIS and photos|+Part of your membership feeds dogs in need', sk: '+Všetko, čo má Apoštol|+Najvyššie limity na AINUBISa aj fotky|+Časť tvojho členského nakŕmi psy v núdzi' },
+ bk4: { en: '+Everything a Prophet has|+The highest seal in the whole empire|+Monthly, or once and forever|+The thanks of the whole empire', sk: '+Všetko, čo má Prorok|+Najvyššia pečať v celej ríši|+Mesačne, alebo raz a navždy|+Vďaka celej ríše' },
  /* Matej 11. 11. 2026: hodnosti = predplatné; jednorazová podpora zvlášť, bez konta a bez hry */
  per_mo: { en: '/ mo', sk: '/ mes.' }, once: { en: 'one-time', sk: 'jednorazovo' }, mo_or_once: { en: '/ mo or one-time', sk: '/ mes. alebo raz' },
  sup_h: { en: 'Not into games? You can still', sk: 'Nehráš? Aj tak môžeš' }, sup_h2: { en: 'HELP', sk: 'POMÔCŤ' },

@@ -44,7 +44,7 @@ export const sealOfHuman = (hasDog: boolean): SealTier => (hasDog ? SEAL_OF_LIST
 
 /** Meno úrovne pre aria-label / tooltip. */
 export const sealLabel = (tier: SealTier, tx: (k: string, f: string) => string) =>
-  tx(`pack.seal.${tier}`, { veriaci: 'Believer', akolyta: 'Messenger', knaz: 'Builder', vezir: 'Vizier', farao: 'Pharaoh', zakladatel: 'Founder' }[tier]);
+  tx(`pack.seal.${tier}`, { veriaci: 'Believer', akolyta: 'Preacher', knaz: 'Apostle', vezir: 'Prophet', farao: 'Vizier', zakladatel: 'Founder' }[tier]);
 
 function wave(n: number, a: number, R: number) {
   let d = '';

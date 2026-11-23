@@ -304,7 +304,7 @@ const reduced = () => typeof window !== 'undefined' && !!window.matchMedia?.('(p
 
 interface PhotoState { key: number; preview: string; url: string | null; busy: boolean; blob: Blob; forDog: string }
 /** FOTKY V ZÁPISE PODĽA HODNOSTI (Matej 22. 11. 2026: „pôjde len veriacim, poslom 3, staviteľom 5, vezírom 10“ → „ok“).
- *  Vypínač RANK_LIMITS_ON (packFlags): do FLIPu len testovacia appka, inde 1 fotka ako doteraz. Faraón je len Matej — 20 = prakticky bez stropu. */
+ *  Vypínač RANK_LIMITS_ON (packFlags): do FLIPu len testovacia appka, inde 1 fotka ako doteraz. Vezír (id farao) je len Matej — 20 = prakticky bez stropu. */
 const PHOTOS_BY_SEAL: Record<SealTier, number> = { veriaci: 1, akolyta: 3, knaz: 5, vezir: 10, zakladatel: 10, farao: 20 };
 interface Row { fam: string; emoji: string; before: number; after: number; lo: number; nx: number; hit: boolean;
   /** Získaný odznak: obrázok medaily, nový stupeň a či ide o vyšší stupeň (už mal nižší). */
