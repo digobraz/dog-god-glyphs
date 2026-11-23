@@ -163,14 +163,17 @@ function TripsSection({ c }: { c: (k: string) => string }) {
     let alive = true;
     /* Kurátorské výlety + schválené výlety členov (Matej 23. 11.: „malo by byť viac km a viac výletov“). */
     type Trips = { count: number; km: number; countries: string[] };
+    /* + diaľkové cesty (SNP 770 km a ďalších 10) — sú v heroJourneys, nie v heroTrails. */
     Promise.all([
       import('@/data/heroTrails.generated'),
+      import('@/data/heroJourneys'),
       getPackStats<{ trips?: Trips }>().then((s) => s.trips ?? null).catch(() => null),
-    ]).then(([{ HERO_TRAILS }, member]) => {
+    ]).then(([{ HERO_TRAILS }, { HERO_JOURNEYS }, member]) => {
       if (!alive) return;
-      const km = HERO_TRAILS.reduce((a, t) => a + (parseFloat(t.km) || 0), 0) + (member?.km ?? 0);
-      const lands = new Set([...HERO_TRAILS.map((t) => t.country ?? 'sk'), ...(member?.countries ?? [])]).size;
-      setNums([HERO_TRAILS.length + (member?.count ?? 0), Math.round(km), lands]);
+      const all = [...HERO_TRAILS, ...HERO_JOURNEYS];
+      const km = all.reduce((a, t) => a + (parseFloat(t.km) || 0), 0) + (member?.km ?? 0);
+      const lands = new Set([...all.map((t) => t.country ?? 'sk'), ...(member?.countries ?? [])]).size;
+      setNums([all.length + (member?.count ?? 0), Math.round(km), lands]);
     }).catch(() => { /* čísla sú doplnok, kroky stoja aj bez nich */ });
     return () => { alive = false; };
   }, [near]);
