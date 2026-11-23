@@ -21,7 +21,7 @@ import { Fragment, Suspense, lazy, useEffect, useMemo, useRef, useState, type CS
 import { Seo } from '@/components/Seo';
 import AI_HEAD from '@/assets/ainubis-head.webp';
 import { AiFlow, Ic } from './appWeb/AiFlow';
-import { AiScrolls, AiPods, AiChat } from './appWeb/AiLearn';
+import { AiScrolls, AiChat } from './appWeb/AiLearn';
 import { AiBrain } from './appWeb/AiBrain';
 import { STAGE_CSS } from '@/components/pack/packTheme';
 import { VAULT_COUNTS } from '@/components/pack/vault/vaultRegister';
@@ -35,7 +35,8 @@ import { CLAIM, isClaim } from './appWeb/claim';
 import { CLAIM22 } from './appWeb/claim22';
 import { GiftSheet, useGiftReturn } from './appWeb/GiftSheet';
 import { WebTop, scrollToId } from './appWeb/WebTop';
-import { loadLang } from './appWeb/langs';
+import { loadLang, WEB_LANGS } from './appWeb/langs';
+import { flagUrl } from '@/lib/flagUrl';
 import { intlLocale } from '@/i18n/bcp47';
 import { IgMock, IgIcon } from './appWeb/IgMock';
 import { AlbaCount, AlbaTrio, GlyphZones } from './appWeb/AlbaGlyph';
@@ -771,7 +772,16 @@ export default function AppWeb() {
                 <Ic n="zvitky" cls="ai-cic" /><span className="k">{c('lr1k')}</span><h3 className="ai-ch">{c('lr1h')}</h3><p>{c('lr1p')}</p>
                 <AiScrolls L={L} c={c} />
               </div>
-              <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h3 className="ai-ch">{c('lr2h')}</h3><p>{c('lr2p')}</p><AiPods L={L} c={c} /><div className="ai-wave fill" aria-hidden>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ animationDelay: `${(Math.sin(i * 1.7) * 0.6 - 0.6).toFixed(2)}s` }} />)}</div></div>
+              <div className="ai-card ai-paluba" hidden={aiTab !== 1}><Ic n="podcast" cls="ai-cic" /><span className="k">{c('lr2k')}</span><h3 className="ai-ch">{c('lr2h')}</h3><p>{c('lr2p')}</p>
+                {/* POČÚVAJ = mockup prehrávača na celú obrazovku + 18 jazykov (Matej 23. 11.: „dáme preč 5 podcastov na vypočutie“; 18 jazykov predbieha appku, tá dnes hrá 4) */}
+                <div className="ai-listen">
+                  <div className="ai-listen-ph"><Phone src="podcast-prehravac" /></div>
+                  <div className="ai-listen-lg">
+                    <p className="ai-listen-n"><b>18</b><span>{c('pod18')}</span></p>
+                    <div className="ai-listen-fl">{WEB_LANGS.map((x) => <img key={x.code} loading="lazy" src={flagUrl(x.flag, 40)} alt={x.name} title={x.name} />)}</div>
+                  </div>
+                </div>
+              </div>
               <div className="ai-card ai-paluba" hidden={aiTab !== 2}><Ic n="chat" cls="ai-cic" /><span className="k">{c('lr3k')}</span><h3 className="ai-ch">{c('lr3h')}</h3><p>{c('lr3p')}</p><AiChat L={L} c={c} head={AI_HEAD} /></div>
             </div>
           } />
