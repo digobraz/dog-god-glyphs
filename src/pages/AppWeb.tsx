@@ -556,9 +556,7 @@ export default function AppWeb() {
       {/* 2 · ŽI PSÍ ŽIVOT */}
       <section id="life" className="life">
         <div className="wrap split">
-          <Rv className={`fresco${V2 ? ' has-ph' : ''}`}><img loading="lazy" src={`${A}/vyjavy/zivot-hrou.webp`} alt="" /></Rv>
-          {/* ZÁPIS DŇA v telefóne cez fresku (Matej 23. 11.: „pridať zápis obrazovka“) */}
-          {V2 && <div className="life-ph"><Tilt set="zapis" src="app-zapis" /></div>}
+          <Rv className="fresco"><img loading="lazy" src={`${A}/vyjavy/zivot-hrou.webp`} alt="" /></Rv>
           <Rv d={1} className="life-txt">
             <p className="eye">{c('e_life3')}</p>
             <h2 className={V2 ? 'v2' : undefined}><span className="l1">{c('h_life2a')}</span><span className="l1"><span className="deco big">{c('h_life2b')}</span></span>{V2 && <span className="l3">{c('h_life2c')}</span>}</h2>
@@ -597,7 +595,15 @@ export default function AppWeb() {
             </Rv>
             <Rv d={1} className="mid">VS</Rv>
             <Rv d={2} className="vs-col">
-              <Tilt set="profile" src={V2 ? 'app-profil-heroglyf' : 'profil-heroglyf'} />  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
+              {V2
+                /* DOGYPT ako vejár troch telefónov, zrkadlo IG (Matej 23. 11.: zápis dňa a Učeň „skúsme to dať sem“):
+                   v strede profil s heroglyfom, po bokoch zápis dňa a otvorený Učeň; mobil = len profil ako pri IG */
+                ? <div className="dgrow">
+                    <Tilt set="zapis" src="app-zapis" className="dgph dgph1" />
+                    <Tilt set="profile" src="app-profil-heroglyf" className="dgph dgph2" />
+                    <Tilt set="ucen" src="app-ucen" className="dgph dgph3" />
+                  </div>
+                : <Tilt set="profile" src="profil-heroglyf" />}  {/* profil s HEROGLYFOM (Matej 11. 11., snímka z jeho telefónu) */}
               <div className="vs-tag dg"><img className="vs-ico" src="/web-app/app-icon.png" alt="DOGYPT" /><p>{c('cap2')}</p></div>
             </Rv>
           </div>
@@ -845,8 +851,6 @@ export default function AppWeb() {
             <p className="lead">{c('l_play')}</p>
           </Rv>
           <Rv className="lv-h"><h3>{c('h_lv_a')} <span className="deco">{c('h_lv_b')}</span> {c('h_lv_c')}</h3></Rv>
-          {/* otvorený level UČŇA v profile (Matej 23. 11.: „detail napr. na otvorený level učňa, keď sa klikne na ikonku v profile“) */}
-          {V2 && <Rv className="lv-ph"><Tilt set="ucen" src="app-ucen" /></Rv>}
           <div className="lv3">
             {LEVELS.map((p, i) => (
               <Rv key={p.ax} d={i} className="lv pk-stage">
