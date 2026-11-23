@@ -1104,6 +1104,7 @@ export const chn: Partial<Dict> = {
   "pack.notif.welcome.btn": "欢迎",
   "pack.notif.welcome.thx": "已欢迎。你的爪印正在路上。",
   "pack.notif.newBadge": "新",
+  "pack.notif.readMore": "阅读更多",
   "pack.alerts.soc.dogWelcomeOne": "{who} 欢迎 {dog} 加入狗群",
   "pack.alerts.soc.dogWelcomeMany": "{who} 和另外 {others} 人欢迎 {dog} 加入狗群",
   // pack.invite

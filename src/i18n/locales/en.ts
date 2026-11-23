@@ -2600,6 +2600,7 @@ export const en = {
   'pack.notif.welcome.btn': "Welcome",
   'pack.notif.welcome.thx': "Welcomed. Your paw is on its way.",
   'pack.notif.newBadge': "new",
+  "pack.notif.readMore": "Read more",
   'pack.notif.soon': "soon",
   'pack.notif.totalWorldwide': "{count} Dogyptians worldwide",
   'pack.notif.sheetTitle': "Notifications",

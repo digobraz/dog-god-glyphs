@@ -1272,6 +1272,7 @@ export const pol: Partial<Dict> = {
   "pack.notif.welcome.btn": "Witaj",
   "pack.notif.welcome.thx": "Powitane. Dostanie od ciebie łapkę.",
   "pack.notif.newBadge": "nowe",
+  "pack.notif.readMore": "Czytaj dalej",
   "pack.alerts.soc.dogWelcomeOne": "{who} wita {dog} w stadzie",
   "pack.alerts.soc.dogWelcomeMany": "{who} i inni ({others}) witają {dog} w stadzie",
   // pack.invite

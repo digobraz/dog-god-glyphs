@@ -2381,6 +2381,7 @@ export const sk: Partial<Dict> = {
   "pack.notif.welcome.btn": "Vitaj",
   "pack.notif.welcome.thx": "Privítané. Dostane od teba labku.",
   "pack.notif.newBadge": "nové",
+  "pack.notif.readMore": "Čítať viac",
   // pack.invite
   "pack.invite.close": "Zavrieť",
   "pack.invite.cleanLinkNote": "Stránka tvojho psa — vlož ju tam, kde sa fotka nehodí: bio, QR, podpis v maili.",

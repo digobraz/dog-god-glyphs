@@ -1104,6 +1104,7 @@ export const ara: Partial<Dict> = {
   "pack.notif.welcome.btn": "أهلًا",
   "pack.notif.welcome.thx": "تم الترحيب. مخلبك في الطريق إليه.",
   "pack.notif.newBadge": "جديد",
+  "pack.notif.readMore": "اقرأ المزيد",
   "pack.alerts.soc.dogWelcomeOne": "{who} يرحّب بـ {dog} في القطيع",
   "pack.alerts.soc.dogWelcomeMany": "{who} و{others} آخرون يرحّبون بـ {dog} في القطيع",
   // pack.invite

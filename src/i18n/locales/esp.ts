@@ -1289,6 +1289,7 @@ export const esp: Partial<Dict> = {
   "pack.notif.welcome.btn": "Bienvenida",
   "pack.notif.welcome.thx": "Bienvenida enviada. Tu patita va en camino.",
   "pack.notif.newBadge": "nuevo",
+  "pack.notif.readMore": "Leer más",
   "pack.alerts.soc.dogWelcomeOne": "{who} da la bienvenida a {dog} a la manada",
   "pack.alerts.soc.dogWelcomeMany": "{who} y {others} más dan la bienvenida a {dog} a la manada",
   // pack.invite

@@ -1108,6 +1108,7 @@ export const ind: Partial<Dict> = {
   "pack.notif.welcome.btn": "स्वागत है",
   "pack.notif.welcome.thx": "स्वागत हो गया। तुम्हारा पंजा पहुँच रहा है।",
   "pack.notif.newBadge": "नया",
+  "pack.notif.readMore": "और पढ़ें",
   "pack.alerts.soc.dogWelcomeOne": "{who} झुंड में {dog} का स्वागत कर रहे हैं",
   "pack.alerts.soc.dogWelcomeMany": "{who} और {others} अन्य झुंड में {dog} का स्वागत कर रहे हैं",
   // pack.invite

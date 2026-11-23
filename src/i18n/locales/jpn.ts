@@ -1104,6 +1104,7 @@ export const jpn: Partial<Dict> = {
   "pack.notif.welcome.btn": "ようこそ",
   "pack.notif.welcome.thx": "歓迎しました。あなたの肉球が届きます。",
   "pack.notif.newBadge": "新着",
+  "pack.notif.readMore": "続きを読む",
   "pack.alerts.soc.dogWelcomeOne": "{who}さんが{dog}を群れに歓迎しています",
   "pack.alerts.soc.dogWelcomeMany": "{who}さんとほか{others}人が{dog}を群れに歓迎しています",
   // pack.invite

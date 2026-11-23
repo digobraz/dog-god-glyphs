@@ -1125,6 +1125,7 @@ export const tur: Partial<Dict> = {
   "pack.notif.welcome.btn": "Hoş geldin",
   "pack.notif.welcome.thx": "Karşılandı. Patin yolda.",
   "pack.notif.newBadge": "yeni",
+  "pack.notif.readMore": "Devamını oku",
   "pack.alerts.soc.dogWelcomeOne": "{who}, {dog} için sürüye hoş geldin diyor",
   "pack.alerts.soc.dogWelcomeMany": "{who} ve {others} kişi daha {dog} için sürüye hoş geldin diyor",
   // pack.invite

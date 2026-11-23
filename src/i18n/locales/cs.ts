@@ -1782,6 +1782,7 @@ export const cs: Partial<Dict> = {
   "pack.notif.welcome.btn": "Vítej",
   "pack.notif.welcome.thx": "Přivítáno. Dostane od tebe tlapku.",
   "pack.notif.newBadge": "nové",
+  "pack.notif.readMore": "Číst dál",
   // pack.invite
   "pack.invite.close": "Zavřít",
   "pack.invite.ariaHowLineWorks": "Jak funguje tvá linie",

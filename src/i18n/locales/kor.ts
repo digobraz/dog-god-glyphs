@@ -1107,6 +1107,7 @@ export const kor: Partial<Dict> = {
   "pack.notif.welcome.btn": "환영해요",
   "pack.notif.welcome.thx": "환영했어요. 당신의 발바닥이 가고 있어요.",
   "pack.notif.newBadge": "새 소식",
+  "pack.notif.readMore": "더 보기",
   "pack.alerts.soc.dogWelcomeOne": "{who} 님이 {dog}의 무리 합류를 환영해요",
   "pack.alerts.soc.dogWelcomeMany": "{who} 님 외 {others}명이 {dog}의 무리 합류를 환영해요",
   // pack.invite

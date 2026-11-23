@@ -1288,6 +1288,7 @@ export const ukr: Partial<Dict> = {
   "pack.notif.welcome.btn": "Вітаю",
   "pack.notif.welcome.thx": "Привітали. Твоя лапка вже в дорозі.",
   "pack.notif.newBadge": "нове",
+  "pack.notif.readMore": "Читати далі",
   "pack.alerts.soc.dogWelcomeOne": "{who} вітає {dog} у зграї",
   "pack.alerts.soc.dogWelcomeMany": "{who} та ще {others} вітають {dog} у зграї",
   // pack.invite
