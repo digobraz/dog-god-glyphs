@@ -31,7 +31,7 @@ import { VAULT_WORLDS } from './worlds';
 import { VAULT_CIRCLES } from './circles';
 import { VAULT_BADGES } from './vaultBadges';
 import { useLearner } from './useLearner';
-import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, learnerImg, learnerNeed } from '@/components/pack/profile/rankBadge';
+import { LearnerPanel, RANK_PANEL_CSS, RANK_BADGE_ON, L_MAX, learnerImg, learnerNeed } from '@/components/pack/profile/rankBadge';
 import { scrollThumb, type DemoScroll, type ReadRow, pickText, scrollLang, fmtSec, useReads, useMyRequests, useEventSums, useEarnedBadges } from './vaultScrolls';
 
 type Lang = 'sk' | 'cs' | 'en';
@@ -354,11 +354,11 @@ export function VaultKnowledge({ scrolls, lang, avatarUrl, avatarInitial, who, o
               <span className="vkw-xpr">
                 <span>{learner.level}</span>
                 <span className="pk-progress"><span className="pk-progress__fill" style={fill(learner.pct / 100)} /></span>
-                <span className="nx">{Math.min(10, learner.level + 1)}</span>
+                <span className="nx">{Math.min(L_MAX, learner.level + 1)}</span>
               </span>
               <span className="vkw-xpt">
                 <span>{s.pct} % {u.vault}</span>
-                {learner.level < 10 && <span>{u.toLevel.replace('{n}', String(need)).replace('{level}', String(learner.level + 1))}</span>}
+                {learner.level < L_MAX && <span>{u.toLevel.replace('{n}', String(need)).replace('{level}', String(learner.level + 1))}</span>}
               </span>
             </button>
           </div>

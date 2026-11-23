@@ -60,7 +60,7 @@ const CAROUSEL_V2: [string, string][] = [['map', '11-vretenica-mapa'], ['aid', '
 const SERVANT_YEARS = ['0–3', '4–8', '9–13', '14–18', '19–23', '24–29', '30–39', '40+'];
 const PILGRIM_LEVELS = ['1–3', '4–7', '8–12', '13–18', '19–25', '26–33', '34–42', '43–52', '53+'];
 /** Pásma UČŇA = % VAULTU (schválené 6. 11., `plany/nakresy/pecat-odznaky-2026-11-06`). */
-const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '30 %', '45 %', '60 %', '80 %', '100 %'];
+const UCEN_PCT = ['1.', '2 %', '5 %', '10 %', '20 %', '35 %', '55 %', '80 %', '100 %'];
 
 /** Tri levely pre vlastného psa — `start` = úroveň vzorového psíčkara, tá istá ako v levitujúcich odznakoch v hero. */
 const LEVELS: { ax: string; scene: string; start: number; n: number; img: (i: number) => string; cap: (i: number, c: (k: string) => string) => string }[] = [

@@ -223,37 +223,40 @@ export function PilgrimBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
 }
 
 /* UČEŇ — štúdium vo VAULTe (6. 11. 2026). Matej: *„učeň bude na štýl pútnika, názov sa nemení, len level“*.
- * Level = PODIEL uzavretých zvitkov z plánu VAULTu (10 pásiem, 1 = prvý zvitok … 10 = 100 %), NIKDY neklesá:
+ * Level = PODIEL uzavretých zvitkov z plánu VAULTu (9 pásiem, 1 = prvý zvitok … 9 = 100 %), NIKDY neklesá:
  * keď pribudnú zvitky, % klesne, level ostane (najvyšší dosiahnutý drží DB, `human.learner`).
- * Obrázky = atóm, guličiek toľko ako level, výplň = prvok s týmto počtom elektrónov, vodík až neón
- * (zatiaľ, Matej 8. 11.; `plany/nakresy/odznaky-stred-2026-11-08/final-ucen.mjs`). */
-const L_FROM = [0, 2, 5, 10, 20, 30, 45, 60, 80, 100];
+ * Obrázky = ČIAPKY bez dosky (Matej 23. 11. 2026): Zelenáč · Zvedavec · Bádateľ · Dobyvateľ · Kapitán ·
+ * Absolvent · Kozmonaut · Mág · Panovník (`plany/nakresy/odznaky-stred-2026-11-08/final-ucen-ciapky.mjs`).
+ * Do 23. 11. atóm vodík až neón v 10 stupňoch; 10. stupeň zanikol, uložený level 10 sa zreže na 9. */
+const L_FROM = [0, 2, 5, 10, 20, 35, 55, 80, 100];
+/** Najvyšší level UČŇA = 100 % psieho rozumu. */
+export const L_MAX = L_FROM.length;
 /** Zväčšenie obrázka — plátno má rovnakú mierku ako SLUŽOBNÍK (`final-ucen.mjs`). */
 const L_K = 1.7;
 /** Kde začína kapsula — hroty a výboje top tieru by zakryli číslo. */
-const L_CP = [-.5, -.5, -.5, -.5, -.5, -.5, -.5, -.45, -.35, -.25];
-export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(10, level))}.webp`;
+const L_CP = [-.5, -.5, -.5, -.5, -.5, -.5, -.5, -.45, -.35];
+export const learnerImg = (level: number) => `/icons/pack/rank/learner-${Math.max(1, Math.min(L_MAX, level))}.webp`;
 /** `read` uzavretých z `total` → level (0 = ešte nič) a postup k ďalšiemu v %.
  *  `floor` = najvyšší dosiahnutý level z DB (`human.learner.level`) — level NIKDY NEKLESÁ, ani keď VAULT
  *  pribudne zvitkami a podiel sa zmenší. Do večera 6. 11. 2026 to držal `localStorage` (iný telefón začínal
  *  odznova a na spoločnom zariadení si druhý človek zdedil level prvého). Zápis robí `useLearner`. */
 /** Koľko zvitkov chýba do ďalšieho levelu (0 na vrchole). */
-export const learnerNeed = (read: number, total: number, level: number) => (level === 0 ? 1 : level < 10 ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0);
+export const learnerNeed = (read: number, total: number, level: number) => (level === 0 ? 1 : level < L_MAX ? Math.max(1, Math.ceil((L_FROM[level] / 100) * total) - read) : 0);
 
 export function learnerProgress(read: number, total: number, floor = 0): { level: number; pct: number; share: number } {
   const share = total > 0 ? (read / total) * 100 : 0;
   let level = read > 0 ? 1 + L_FROM.slice(1).filter((f) => share >= f).length : 0;
-  level = Math.min(10, Math.max(level, floor));
-  if (level >= 10 || level === 0) return { level, pct: level >= 10 ? 100 : 0, share };
+  level = Math.min(L_MAX, Math.max(level, floor));
+  if (level >= L_MAX || level === 0) return { level, pct: level >= L_MAX ? 100 : 0, share };
   const lo = L_FROM[level - 1], hi = L_FROM[level];
   return { level, pct: Math.max(0, Math.min(100, ((share - lo) / (hi - lo)) * 100)), share };
 }
 /** Prstenec okolo fotky v hlavičke AINUBISA (`PackIdentityBar ring`) — tie isté farby ako kapsula. */
-export const learnerRingVars = (level: number): CSSProperties => (level >= 10
+export const learnerRingVars = (level: number): CSSProperties => (level >= L_MAX
   ? { '--tier-a': '#F5C73D', '--tier-b': '#E69E1A', '--tier-ink': '#2A1600', '--tier-glow': 'rgba(245,170,40,.45)' }
   : { '--tier-a': '#5FE6FF', '--tier-b': '#1FA9C9', '--tier-ink': '#04212A', '--tier-glow': 'rgba(95,230,255,.42)' }) as CSSProperties;
-/** Náplň kapsuly: cyan ako prstence; lvl 10 zlato-oranžová AINUBISA. */
-const learnerFill = (level: number): CSSProperties => (level >= 10
+/** Náplň kapsuly: cyan ako prstence; vrchol zlato-oranžová AINUBISA. */
+const learnerFill = (level: number): CSSProperties => (level >= L_MAX
   ? { background: 'linear-gradient(180deg,#FFE9A8,#F5C73D 45%,#E69E1A 80%,#9A5E08)', boxShadow: 'inset 0 -3px 5px rgba(60,30,0,.45), 0 0 10px rgba(245,170,40,.7)' }
   : { background: 'linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,.08) 42%,rgba(0,0,0,0) 55%,rgba(0,0,0,.32)),linear-gradient(90deg,#1FA9C9,#5FE6FF)', boxShadow: 'inset 0 -3px 5px rgba(0,0,0,.35), 0 0 10px rgba(95,230,255,.6)' });
 
@@ -262,14 +265,14 @@ export function LearnerBadge({ level, pct, on, onClick, label }: BadgeBtn & { le
     <button type="button" data-rank-toggle className={`rk${on ? ' on' : ''}`} style={{ ['--cp' as string]: L_CP[Math.max(0, level - 1)] }} onClick={onClick} aria-expanded={on} aria-label={label}>
       <span className="ic" style={{ ['--k' as string]: L_K, opacity: 1 }}><img src={learnerImg(level)} alt="" /></span>
       <span className="cp">
-        <span className={`fl${level >= 10 ? ' full' : ''}`} style={{ width: fillWidth(pct), ...learnerFill(level) }} />
+        <span className={`fl${level >= L_MAX ? ' full' : ''}`} style={{ width: fillWidth(pct), ...learnerFill(level) }} />
         <span className="nb">{level}</span>
       </span>
     </button>
   );
 }
 
-/** UČEŇ po rozkliku: obrázok, pás k ďalšiemu pásmu, čísla zo VAULTu, rebrík 10 atómov, odkaz do VAULTu. */
+/** UČEŇ po rozkliku: obrázok, pás k ďalšiemu pásmu, čísla zo VAULTu, rebrík 9 čiapok, odkaz do VAULTu. */
 export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx }: {
   read: number; total: number; floor?: number; liked: number; saved: number; onVault?: () => void; tx: Tx;
 }) {
@@ -285,7 +288,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
         <span className="ab">{read ? Math.max(1, Math.round(share)) : 0} %</span>
       </div>
       <div className="rkp-prog">
-        <div className="rkp-lbl"><span>{level >= 10
+        <div className="rkp-lbl"><span>{level >= L_MAX
           ? tx('pack.rank.learnerTop', 'You have mastered all of Dog Sense.')
           : tx('pack.rank.learnerToNext', '{n} more scrolls to level {level}').replace('{n}', String(need)).replace('{level}', String(level + 1))}</span></div>
         <div className="rkp-bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
@@ -293,7 +296,7 @@ export function LearnerPanel({ read, total, floor = 0, liked, saved, onVault, tx
           <span>{read} / {total}</span>
         </div>
         {/* ĎALŠÍ LEVEL ako pri PÚTNIKOVI (Matej 9. 11. 2026) */}
-        {level < 10 && <div className="rkp-nx"><img src={learnerImg(level + 1)} alt="" />{name} {level + 1}</div>}
+        {level < L_MAX && <div className="rkp-nx"><img src={learnerImg(level + 1)} alt="" />{name} {level + 1}</div>}
       </div>
       <div className="rkp-nums">
         <div><b>{read}</b><span>{tx('pack.rank.scrolls', 'scrolls')}</span></div>
