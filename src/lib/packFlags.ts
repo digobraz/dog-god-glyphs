@@ -205,7 +205,9 @@ export const ALBUMS_ON = false;
 // 🗺️ VEREJNÁ MAPA `/map` (otvára ju planétka z webu /app v novej karte) nesie nový šat aj na webe — Matej 11. 11. 2026:
 // „treba to upraviť do dnešnej podoby nového dizajnu apky“. Rozhoduje adresa pri NAČÍTANÍ karty, nie routa po nej.
 const PUBLIC_MAP_TAB = typeof window !== 'undefined' && /^\/map(\/|$)/.test(window.location.pathname);
-export const APP_NEW: boolean = TEST_BUILD || IS_APP || PUBLIC_MAP_TAB;
+// FLIP 23. 11. 2026 — Matej: „daj von aj /pack nový tak ako máme v testovacej apke“ ⇒ nové obrazovky aj na webe dogypt.com.
+// Návrat na starý web jedným riadkom: `TEST_BUILD || IS_APP || PUBLIC_MAP_TAB`.
+export const APP_NEW: boolean = true;
 
 // ── AINUBIS CHAT v2 (23. 11. 2026, nákres plany/nakresy/ainubis-chat-2026-11-23, Matej „ok urob") ──────────────
 // `AINUBIS_V2` = nový chat člena v `/pack` (veľký riadok, Pre koho, Kto odpovie, AI kredity, streaming, hodnotenie)

@@ -48,14 +48,14 @@ export const TEST_BUILD = import.meta.env.DEV || import.meta.env.VITE_TEST_BUILD
 // 🟢 6. 11. 2026 Matej: *„do apky ide všetko z toho"* ⇒ v natívnej appke (`IS_APP`) zapnutý pre všetkých.
 // ⚠️ Appka si po štarte stiahne web z dogypt.com — go-live = SOS zapnutý aj v UŽ NAINŠTALOVANÝCH appkách.
 //    Pred go-live preto musia byť na LIVE edge funkcie a cron zo zoznamu plany/sos-pred-live.md.
-export const SOS_ON = import.meta.env.DEV || import.meta.env.VITE_SOS === '1' || IS_APP;
+export const SOS_ON = true; // FLIP 23. 11. 2026: aj web /pack (predtým DEV || VITE_SOS || IS_APP)
 // Verejná stránka `/lost/:slug` (QR na letáku) sa otvára v PREHLIADAČI nálezcu, nie v appke — preto
 // nemôže visieť na `IS_APP`. Zapnutá so SOS v appke (6. 11. 2026); na dogypt.com sa prejaví go-live.
 export const SOS_PUBLIC_ON = true;
 // VETERINÁRNA POHOTOVOSŤ (5. 11. 2026): statický zoznam v balíku appky, nečíta DB, preto beží aj v testovacej appke,
 // kde je `SOS_ON` vypnutý. Zapína len `TEST_BUILD`; na LIVE ostáva mimo, kým Matej nepovie „ostro“.
 // 🟢 6. 11. 2026 do obchodnej appky (Matej: „do apky ide všetko z toho“); web bez zmeny.
-export const VET_ER_ON = TEST_BUILD || IS_APP;
+export const VET_ER_ON = true; // FLIP 23. 11. 2026: aj web /pack
 // PRVÁ POMOC (17. 11. 2026): 22 kariet v balíku appky (`sos/aid/`), nečíta DB. Testovací kanál; do obchodnej
 // appky (`|| IS_APP`) až po kontrole obsahu veterinárom a Matejovom „ostro“.
 export const AID_ON = TEST_BUILD;
@@ -63,7 +63,7 @@ export const AID_ON = TEST_BUILD;
 // Len testovací kanál; ostrá appka a dogypt.com nič nevidia, kým Matej nepovie „ostro“.
 export const DANGER_ON = TEST_BUILD;
 /** ČO STAVIAME (balík 4, 23. 11. 2026): plány ako príspevky AINUBISA + obrazovka `/pack/staviame`. LIVE až s FLIPom. */
-export const VIZIA_ON = TEST_BUILD;
+export const VIZIA_ON = true; // FLIP 23. 11. 2026: migrácia + seed na LIVE (K4b)
 // Podnet zatiaľ nejde skutočnému úradu (server: `DANGER_SEND_REAL`) ⇒ obrazovka podnetu to povie vetou.
 // Zhasni spolu s ostrým odosielaním, nie s `DANGER_ON`.
 export const DANGER_TEST_NOTE = TEST_BUILD;
@@ -74,7 +74,7 @@ export const MOMENTY_ON = TEST_BUILD;
 // appky po komnatách s odznakmi a kľúčikom pri AINUBISovi. Len testovací kanál; register `wizSteps.ts` KOMNATY.
 // 17. 11. (Matej: „pripraviť na flip bez kompromisov“): beží aj v OBCHODNEJ appke (IS_APP = vždy APP_NEW),
 // web dogypt.com ostáva na starej prehliadke.
-export const KOMNATY_ON = TEST_BUILD || IS_APP;
+export const KOMNATY_ON = true; // FLIP 23. 11. 2026: aj web /pack
 const PINNED = import.meta.env.PROD && !APP_DEV;
 
 export const SUPABASE_URL = PINNED

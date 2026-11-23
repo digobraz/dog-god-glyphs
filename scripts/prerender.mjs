@@ -53,6 +53,11 @@ const PAGES = [
   // Login: hotová je až karta s formulárom (stav „missing"); dovtedy ukazuje „overujem".
   // Prihlásený človek alebo návrat z magic linku šablónu nedostane — appka ho hneď presmeruje.
   { path: '/login', file: 'login.html', ready: '#root .lg-login .lg-card form', page: '.lg-login', skipAuth: true },
+  // HOMEPAGE (FLIP 23. 11. 2026, Matej: „nech má mobil nad 90 bodov“). Mobil mal LCP 7,9 s — rám telefónu
+  // čakal na 400 kB JS. `/` = dist/index.html, ktorý je ZÁROVEŇ SPA záloha pre každú cestu ⇒ šablóna sa
+  // použije len na `/` (onlyPath) a renderuje sa POSLEDNÁ (psy berú snímku z čistého index.html).
+  // Do HTML ide len hlavička + hero (prune), zvyšok dokreslí appka.
+  { path: '/', file: 'index.html', ready: '#root .aw .hero h1 .deco', page: '.aw', skipAuth: true, onlyPath: '/', prune: 'main > :not(.hero)', home: true },
 ];
 
 // ── PSY ─────────────────────────────────────────────────────────────────────────────────────
@@ -77,7 +82,7 @@ for (const d of DOGS) PAGES.push({
 });
 
 // Snímka sa robí z čistého index.html — šablóna z minulého behu by preview servíroval namiesto neho.
-for (const p of PAGES) if (!p.dog) rmSync(resolve(DIST, p.file), { force: true });
+for (const p of PAGES) if (!p.dog && !p.home) rmSync(resolve(DIST, p.file), { force: true });
 rmSync(resolve(DIST, 'pre'), { recursive: true, force: true });
 
 const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort', '--host', '127.0.0.1'], {
@@ -122,12 +127,13 @@ async function snapshot(browser, page, lang, base) {
       if (w.startsWith('data:image/webp') && w.length < img.src.length) img.setAttribute('src', w);
     }
   });
-  const out = await p.evaluate(([base, pageSel]) => {
+  const out = await p.evaluate(([base, pageSel, prune]) => {
     // Len samotná stránka (a jej obaly), nie súrodenci — cookie lišta, toaster či DevNav by sa
     // inak zapiekli do HTML a ukázali aj tomu, kto už súhlas dal.
     const pageEl = document.querySelector(`#root ${pageSel}`);
     if (!pageEl) return { html: '', styles: '', title: '' };
     let node = pageEl.cloneNode(true);
+    if (prune) node.querySelectorAll(prune).forEach((e) => e.remove());
     for (let a = pageEl.parentElement; a && a.id !== 'root'; a = a.parentElement) {
       const shell = a.cloneNode(false); shell.appendChild(node); node = shell;
     }
@@ -137,7 +143,7 @@ async function snapshot(browser, page, lang, base) {
       .filter((s) => !base.includes(s.textContent || '\u0000'))
       .map((s) => s.outerHTML).join('');
     return { html: root.innerHTML, styles, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
-  }, [base, page.page]);
+  }, [base, page.page, page.prune || '']);
   await ctx.close();
   if (!out.html.trim()) throw new Error(`${page.path} [${lang}] je prázdna`);
   if (page.dog && !out.html.includes(`c_fill,w_${SNAP_PHOTO_W},h_${SNAP_PHOTO_W}`)) throw new Error(`${page.path}: fotka nemá šírku ${SNAP_PHOTO_W} — zmenil sa vzorec __dogPhotoW?`);
@@ -151,6 +157,7 @@ var pre=document.getElementById('pre');if(!pre)return start();
 function drop(){pre.remove();document.documentElement.classList.remove('pre','pre-wait');}
 function skip(){drop();start();}
 try{
+${page.onlyPath ? `if(location.pathname!==${JSON.stringify(page.onlyPath)})return skip();` : ''}
 ${page.skipAuth ? `if(/access_token|refresh_token|token_hash|[?&#]code=|error_description|dogId=/.test(location.hash+location.search))return skip();
 for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)))return skip();}` : ''}
 var lang=localStorage.getItem('dogypt_lang');
@@ -261,7 +268,7 @@ async function main() {
   const browser = setriCloudinary(await chromium.launch());
   const t0 = Date.now();
   try {
-    for (const page of PAGES.filter((p) => !p.dog)) {
+    for (const page of PAGES.filter((p) => !p.dog && !p.home)) {
       const html = await render(browser, page, base, fontsCss);
       console.log(`  ✓ prerender ${page.path} → dist/${page.file} (${(Buffer.byteLength(html) / 1024).toFixed(0)} kB, ${LANGS.join('/')})`);
     }
@@ -286,6 +293,10 @@ async function main() {
     const ok = Object.keys(sigs).length;
     console.log(`  ✓ prerender psy: ${ok}/${dogs.length} → dist/pre/dog/ (spolu ${(kb / 1024).toFixed(1)} MB, ${((Date.now() - t0) / 1000).toFixed(0)} s)`);
     if (dogs.length && fail > dogs.length / 4) throw new Error(`zlyhalo ${fail} z ${dogs.length} psov`);
+    for (const page of PAGES.filter((p) => p.home)) {
+      const html = await render(browser, page, base, fontsCss);
+      console.log(`  ✓ prerender ${page.path} → dist/${page.file} (${(Buffer.byteLength(html) / 1024).toFixed(0)} kB, ${LANGS.join('/')})`);
+    }
   } finally {
     await browser.close();
     kill();
