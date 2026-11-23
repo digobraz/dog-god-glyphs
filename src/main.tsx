@@ -15,6 +15,7 @@ import { startAppKeyboard } from "./lib/appKeyboard";
 import { startAppLinks } from "./lib/appLinks";
 import { restoreAppSession } from "./lib/appSession";
 import { startAppPush } from "./lib/appPush";
+import { startAppActivity } from "./lib/appActivity";
 // Testovacie dáta z dielne vstupu (`/lab/heroflow`) musia byť v store SKÔR, než
 // sa vykreslí prvá obrazovka — obrazovky flow si store kopírujú do lokálneho
 // stavu pri prvom renderi. Telo modulu je celé za `import.meta.env.DEV`.
@@ -36,6 +37,9 @@ startAppLinks();
 
 // Push: po prihlásení uloží token zariadenia (lib/appPush.ts), ak člen povolil upozornenia. Na webe nič.
 startAppPush();
+
+// Dohľad: obrazovky a ťuky (názov tlačidla) dávkovo do app_events, každému členovi (lib/appActivity.ts). Na webe nič.
+startAppActivity();
 
 // ── STARÁ ZÁLOŽKA PO DEPLOYI (5. 10. 2026, test po FLIPe) ─────────────────────
 // Každý deploy zmení hashe chunkov. Záložka otvorená pred deployom pri lazy navigácii

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AinubisPanel from '@/components/admin/AinubisPanel';
+import MembersPanel from '@/components/admin/MembersPanel';
 import iconDogLover from '@/assets/icons/council-doglover.svg';
 import iconDeveloper from '@/assets/icons/council-developer.svg';
 import iconDogPro from '@/assets/icons/council-dogpro.svg';
@@ -126,7 +127,7 @@ interface PackTripRow {
   } | null;
 }
 
-type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'trips' | 'ainubis';
+type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'trips' | 'ainubis' | 'members';
 
 // role id → council ikona (mapovanie podľa CouncilSection prihlášky)
 const ROLE_ICONS: Record<string, string> = {
@@ -174,8 +175,18 @@ export default function Admin() {
   // `/admin?tab=trips` — Telegram z `notify-trips` pri novom výlete (v1-moderacia).
   const tabDeepLink = searchParams.get('tab');
   useEffect(() => {
-    if (tabDeepLink === 'trips' || tabDeepLink === 'reports') setTab(tabDeepLink);
+    if (tabDeepLink === 'trips' || tabDeepLink === 'reports' || tabDeepLink === 'members') setTab(tabDeepLink);
   }, [tabDeepLink]);
+  // `/admin?tab=members&u=<uid>` — rovno detail človeka.
+  const membersDeepLinkUid = searchParams.get('u');
+  // Počet ľudí s ČERVENOU vlajkou do štítku záložky (panel ho po načítaní prepíše cez onFlagged).
+  const [membersFlagged, setMembersFlagged] = useState(0);
+  useEffect(() => {
+    if (auth !== 'ok') return;
+    (supabase as any).rpc('admin_members').then(({ data }: { data: any }) => {
+      if (Array.isArray(data)) setMembersFlagged(data.filter((m: any) => (m.flags || []).some((f: any) => f.severity === 'red')).length);
+    });
+  }, [auth]);
 
   // login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -399,6 +410,7 @@ export default function Admin() {
     ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'],
     ['reports', openReports > 0 ? `Reports (${openReports})` : 'Reports'],
     ['trips', pendingTrips > 0 ? `Member trips (${pendingTrips})` : 'Member trips'], ['ainubis', 'Ainubis'],
+    ['members', membersFlagged > 0 ? `Members (${membersFlagged})` : 'Members'],
   ];
 
   // user_id → owner label (from dogs) for the vision-votes list.
@@ -657,6 +669,7 @@ export default function Admin() {
       {/* AINUBIS má vlastný live datasource (edge fn ainubis-ops) — nezávisí od
           loadingData (to je pre dogs/contacts/pack/vision). */}
       {tab === 'ainubis' && <AinubisPanel initialConversationId={ainubisDeepLinkId} />}
+      {tab === 'members' && <MembersPanel initialUserId={membersDeepLinkUid} onFlagged={setMembersFlagged} />}
     </>
   );
 }
