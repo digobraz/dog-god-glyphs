@@ -11,6 +11,8 @@ import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, PACK_HEAD, FONT_UI, PAPER_BG
 import type { CSSProperties } from 'react';
 import { POST_TAGS } from './postTags';
 import { APP_NEW } from '@/lib/packFlags';
+import { SNIFFER_TAG } from './postTags';
+import { SNIFFER_ICON } from './FeedSniffer';
 
 // JEDNOTNÉ KRUHY v appke (Matej 8. 11. 2026, továreň `plany/ikonky/`, verzia C): témy *„všetko, vylety, zábava, výcvik
 // zdravie pomoc"*, farebná kresba s lemom namiesto vytesaného znaku. Ostatné témy ostávajú v `POST_TAGS` pri písaní príspevku.
@@ -68,6 +70,8 @@ html.papyrus3d .pkt-a--k:not(.on) .pkt-ring i{border:2.5px solid var(--p3d-ink);
 
 /** „Všetko" = Horovo oko (Matej naklikal 26. 10. 2026; labka nie — „tú používame furt"). */
 const ALL = { tag: '', i18n: 'pack.feed.tag.all', fallback: 'All', icon: 'eye', color: '#A3782B' };
+/** SNIFFER hneď za „Všetko“ (Matej 23. 11. 2026, voľba a): na mobile je v páse vidno ~4,5 kruhu, na konci by ho nikto nenašiel. Len v appke. */
+const SNIFFER = { tag: SNIFFER_TAG, i18n: 'pack.feed.sniffer.topic', fallback: 'Sniffer', icon: 'paw', color: '#1E44C0' };
 
 export function FeedTopics({ topic, onTopic }: { topic: string | null; onTopic: (t: string | null) => void }) {
   const t = useT();
@@ -79,11 +83,11 @@ export function FeedTopics({ topic, onTopic }: { topic: string | null; onTopic: 
     <section>
       <h2 className="pkf-th">{aria}</h2>
       <div className="pkf-tags" role="group" aria-label={aria}>
-        {[ALL, ...POST_TAGS].filter((d) => !APP_NEW || d.tag in KRUH).map((d) => (
+        {[ALL, ...(APP_NEW ? [SNIFFER] : []), ...POST_TAGS].filter((d) => !APP_NEW || d.tag === SNIFFER_TAG || d.tag in KRUH).map((d) => (
           <button key={d.icon + d.tag} type="button" className={`pkt-a${APP_NEW ? ' pkt-a--k' : ''}${isOn(d.tag) ? ' on' : ''}`} aria-pressed={isOn(d.tag)} onClick={() => pick(d.tag)}
             style={{ '--ic': `url('/icons/pack/${d.icon}.svg')`, '--pg': d.color } as CSSProperties}>
             {APP_NEW
-              ? <span className="pkt-ring"><i><img src={`/icons/kruhy/${KRUH[d.tag]}.webp`} alt="" draggable={false} /></i></span>
+              ? <span className="pkt-ring"><i><img src={d.tag === SNIFFER_TAG ? SNIFFER_ICON : `/icons/kruhy/${KRUH[d.tag]}.webp`} alt="" draggable={false} /></i></span>
               : <span className="pkt-ring"><i><s className="pkt-g hi" /><s className="pkt-g lo" /><s className="pkt-g base" /><s className="pkt-g pig" /></i></span>}
             <b>{tx(d.i18n, d.fallback)}</b>
           </button>

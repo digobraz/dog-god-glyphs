@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { linkify } from '@/components/ainubis/ainubisLinkify';
 import { FollowChip, FOLLOW_CHIP_CSS } from '@/components/pack/profile/follow';
 import { useLang, useT } from '@/i18n/LanguageContext';
+import { LAPIS } from '@/components/pack/navGoldSkin';
 import { PACK_THEME, PACK_R, PACK_SPACE, PACK_TEXT, FONT_TITLE, FONT_UI, PACK_AVATAR } from '@/components/pack/packTheme';
 import { UgcText, UGC_TEXT_CSS } from '@/components/pack/UgcText';
 import { LikeMark, CommentMark, SaveMark, ShareMark } from '@/components/pack/SysIcon';
@@ -21,12 +22,17 @@ import { toggleMark } from '@/components/pack/story/storyData';
 import { fetchPostSocial, isNature, type MePost, type PostSocial } from '@/components/pack/profile/mePosts';
 import { sizedUrl } from '@/services/cloudinaryService';
 import { agoLabel, useSwipe } from './feedData';
+import { intlLocale } from '@/i18n/bcp47';
+import { APP_NEW } from '@/lib/packFlags';
 import { PostMenu } from '@/components/pack/profile/PostMenu';
+import { SnifferWrite, SNIFFER_ICON, kmText, type SnifferInfo } from './FeedSniffer';
+import { SNIFFER_DAYS } from './postTags';
 import { deletePost } from '@/components/pack/profile/mePosts';
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
 const TX = PACK_TEXT;
+const LAPIS_DEEP = LAPIS.deep, LAPIS_GRAD = LAPIS.grad, LAPIS_INK = LAPIS.ink;
 
 export const FEED_POST_CSS = `${UGC_TEXT_CSS}
 ${FOLLOW_CHIP_CSS}
@@ -57,6 +63,14 @@ ${FOLLOW_CHIP_CSS}
 .pfp-tx b{font-weight:600;margin-right:${S.xs}px;}
 .pfp-pend{display:inline-block;margin-top:${S.xs}px;padding:2px ${S.sm}px;border-radius:${PACK_R.pill}px;border:1px solid ${T.hairline};font:500 ${TX.micro}px/1.3 ${FONT_UI};color:${T.inkWarm};}
 .pfp-cm{display:block;background:none;border:0;cursor:pointer;padding:${S.xs}px ${S.md}px ${S.md}px;font:500 ${TX.label}px/1.3 ${FONT_UI};color:${T.inkWarm};}
+/* SNIFFER (23. 11. 2026): štítok pri mene + riadok s tlačidlom Napísať (cudzí) / Obnoviť (môj). */
+.pfp-snf{display:inline-flex;align-items:center;gap:${S.xs}px;margin-top:${S.xs}px;padding:2px ${S.sm}px 2px 2px;border-radius:${PACK_R.pill}px;border:1px solid ${T.border};background:${T.card};font:600 ${TX.micro}px/1.3 ${FONT_UI};color:${T.inkStrong};}
+.pfp-snf img{width:16px;height:16px;object-fit:contain;}
+.pfp-sn{display:flex;align-items:center;gap:${S.md}px;padding:${S.sm}px ${S.md}px ${S.md}px;}
+.pfp-sn small{flex:1;min-width:0;font-size:${TX.label}px;line-height:1.3;color:${T.inkWarm};}
+.pfp-sn button{flex:none;min-height:44px;padding:0 ${S.lg}px;}
+.pfp-sn button:not(.pk-b3){border:1px solid ${LAPIS_DEEP};background:${LAPIS_GRAD};color:${LAPIS_INK};border-radius:${PACK_R.field}px;cursor:pointer;font:600 ${TX.body}px/1 ${FONT_UI};}
+html.papyrus3d .pfp-sn .pk-b3{font-size:${TX.lead}px;}
 /* ŠAT PAPYRUS 3D (hárok H3): lem avatara, meno v Museu, akcie ako papierové tlačidlá, nulové akcie vyblednuté. */
 html.papyrus3d .pfp-head .pk-medallion{border:3px solid var(--p3d-gold);box-shadow:0 0 0 2px var(--p3d-ink);}
 html.papyrus3d .pfp-who b{font-family:'LT Museum',serif;font-weight:400;font-size:${TX.h2}px;line-height:1.1;letter-spacing:0;color:var(--p3d-ink);} /* písmo: meno */
@@ -70,12 +84,14 @@ html.papyrus3d .pfp-acts button.fd img{filter:grayscale(1) opacity(.42) !importa
 html.papyrus3d .pfp-acts .save.on{color:var(--p3d-gold-ink);}
 `;
 
-export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true, pending = false }: {
+export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine = true, pending = false, sniffer }: {
   post: MePost; name: string; avatar: string | null; onOpen: (p: MePost) => void;
   /** Cudzí autor (až bude feed vedieť): jeho číslo majiteľa + `mine={false}` — tri bodky ponúknu nahlásiť/zablokovať. */
   authorN?: number | null; mine?: boolean;
   /** Môj príspevok v karanténe (`hidden_at`) — ostatným skrytý, autorovi sa ukáže s jemným štítkom. */
   pending?: boolean;
+  /** Príspevok so štítkom `t:sniffer` v téme Sniffer: vzdialenosť, Napísať / Obnoviť. */
+  sniffer?: SnifferInfo;
 }) {
   const t = useT();
   const tx = (key: string, fallback: string) => { const v = t(key); return v === key ? fallback : v; };
@@ -115,7 +131,8 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         </button>
         <div className="pfp-who">
           <b role="link" tabIndex={0} onClick={openAuthor} onKeyDown={(e) => { if (e.key === 'Enter') openAuthor(); }}>{name}{mine ? <MySeal tx={tx} size="0.9em" /> : authorN != null && <MemberSeal n={authorN} tx={tx} size="0.9em" />}</b>
-          <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang)].filter(Boolean).join(' · ')}</small>
+          <small>{[place?.name, agoLabel(Date.parse(post.createdAt), lang), sniffer ? kmText(sniffer.km, tx) : ''].filter(Boolean).join(' · ')}</small>
+          {sniffer && <span className="pfp-snf"><img src={SNIFFER_ICON} alt="" />{tx('pack.feed.sniffer.topic', 'Sniffer')}</span>}
           {pending && <span className="pfp-pend">{tx('pack.feed.pending', 'Awaiting review')}</span>}
         </div>
         {!mine && authorN != null && <FollowChip n={authorN} />}
@@ -147,6 +164,16 @@ export function FeedPostCard({ post, name, avatar, onOpen, authorN = null, mine 
         </button>
       </div>
       {post.body && <UgcText kind="post" id={post.id} text={post.body} mine={mine}>{(s, tg) => <p className="pfp-tx" onClick={(e) => e.stopPropagation()}><b>{name}</b>{linkify(s, (path) => navigate(path), 'pfp-link')}{tg}</p>}</UgcText>}
+      {sniffer && (
+        <div className="pfp-sn">
+          {sniffer.mine ? (<>
+            <small>{sniffer.expired
+              ? tx('pack.feed.sniffer.expired', 'Expired. Renew to show it in Sniffer again.')
+              : tx('pack.feed.sniffer.until', 'Shown in Sniffer until {date}').replace('{date}', new Date(Date.parse(sniffer.at) + SNIFFER_DAYS * 86_400_000).toLocaleDateString(intlLocale(lang), { day: 'numeric', month: 'numeric' }))}</small>
+            <button type="button" className={APP_NEW ? 'pk-b3 pk-b3--lapis' : undefined} onClick={sniffer.onRenew}>{tx('pack.feed.sniffer.renew', 'Renew')}</button>
+          </>) : <SnifferWrite ownerN={authorN} />}
+        </div>
+      )}
       {soc.comments > 0
         ? <button type="button" className="pfp-cm" onClick={() => onOpen(post)}>{tx('pack.feed.comments', 'View {n} comments').replace('{n}', String(soc.comments))}</button>
         : <div style={{ height: S.md }} />}

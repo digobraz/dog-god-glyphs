@@ -49,6 +49,28 @@ const STICKER_FILE: Record<string, string> = {
   note_unique: 'unikat',   // UNIKÁT = diamant (Matej 22. 11. 2026, 23. 11.: „diamant bude vyslovene nejaký unikát, nie tip“)
 };
 
+// PARKOVISKO (Matej 23. 11. 2026, 3. kolo): VŽDY modrý blok. Zdarma = biele P, platené = žlté P na modrom.
+// „Vhodné na kemping" = červený karavan cez pravý dolný roh P (nákres `plany/nakresy/parkovisko-camping-2026-11-23`).
+// Žltý blok, zelená nula, minca a malé karavany sú ZAMIETNUTÉ — nevracať.
+const PARKING_PAID_FILE = 'parking-platene';
+const CARAVAN_FILE = 'karavan';
+
+/** Samolepka parkoviska podľa ceny. `null` (cena neznáma, staré zápisy) = modré P ako zdarma. */
+export const parkingStickerSrc = (paid: boolean | null | undefined): string | null =>
+  MAP_STICKERS_ON ? `/map-marks/${paid ? PARKING_PAID_FILE : 'parking'}.webp` : null;
+
+export const caravanStickerSrc = (): string => `/map-marks/${CARAVAN_FILE}.webp`;
+
+/** Parkovisko ako jedna značka: P (+ karavan, keď je vhodné na kemping). Rovnaký obal ako `stickerImg`. */
+export const parkingStickerHtml = (paid: boolean | null | undefined, overnight: boolean, extra = '', px?: number): string => {
+  const src = parkingStickerSrc(paid);
+  if (!src) return '';
+  if (!overnight) return stickerImg(src, extra, px);
+  return `<span class="mk-sticker mk-park${extra}"${px ? ` style="width:${px}px;height:${px}px"` : ''}>` +
+    `<img class="mk-park-p" src="${src}" alt="" draggable="false">` +
+    `<img class="mk-park-van" src="${caravanStickerSrc()}" alt="" draggable="false"></span>`;
+};
+
 /** Cesta k samolepke typu bodu, alebo null, keď má ostať emoji. */
 export const stickerSrc = (t: string): string | null =>
   MAP_STICKERS_ON && STICKER_FILE[t] ? `/map-marks/${STICKER_FILE[t]}.webp` : null;
