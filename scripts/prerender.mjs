@@ -142,7 +142,11 @@ async function snapshot(browser, page, lang, base) {
     const styles = [...document.head.querySelectorAll('style')]
       .filter((s) => !base.includes(s.textContent || '\u0000'))
       .map((s) => s.outerHTML).join('');
-    return { html: root.innerHTML, styles, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
+    // Súbory štýlov, ktoré si stránka stiahla sama (lazy chunk, napr. appWeb-*.css) — bez nich je hotové HTML
+    // nenaštýlované a pri výmene skočí (homepage 23. 11.: CLS 0,5, LCP sa ráta až z appky).
+    const links = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute('href') || '')
+      .filter((h) => h.startsWith('/assets/') && !base.includes(h));
+    return { html: root.innerHTML, styles, links, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
   }, [base, page.page, page.prune || '']);
   await ctx.close();
   if (!out.html.trim()) throw new Error(`${page.path} [${lang}] je prázdna`);
@@ -217,6 +221,7 @@ async function render(browser, page, base, fontsCss) {
   // Toaster (sonner) pri prvom vykreslení nič neukazuje, jeho štýly nepotrebujeme.
   const css = new Set();
   const data = [];
+  const links = new Set();
   const STYLE_RX = /<style[^>]*>[\s\S]*?<\/style>/g;
   // Veľké data: URI raz pre všetky jazyky (prefarbený heroglyf má desiatky kB).
   const dedupe = (html) => html.replace(/data:[a-z]+\/[a-z+.-]+;base64,[A-Za-z0-9+/=]{2000,}/g, (u) => {
@@ -225,6 +230,7 @@ async function render(browser, page, base, fontsCss) {
   });
   for (const lang of LANGS) {
     const s = await snapshot(browser, page, lang, base);
+    for (const h of s.links ?? []) links.add(h);
     for (const m of (s.styles + s.html).match(STYLE_RX) ?? []) if (!m.includes('data-sonner-toaster')) css.add(m);
     tpls.push(`<template data-pre="${lang}" data-title="${escAttr(s.title)}">${dedupe(s.html.replace(STYLE_RX, ''))}</template>`);
     for (const m of s.consent.match(STYLE_RX) ?? []) css.add(m);
@@ -251,7 +257,13 @@ async function render(browser, page, base, fontsCss) {
   // Písma inline (≈1 kB gzip): hotový text sa ukáže až s nimi. S náhradným písmom bol text
   // o kúsok menší a appka ho pri výmene nahradila VÄČŠÍM ⇒ prehliadač to rátal ako nové
   // najväčšie vykreslenie a LCP padlo až na výmenu (/terms 3,8 s namiesto ~1,4 s).
-  const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>`).replace('<div id="root"></div>', inject);
+  // onlyPath: štýly stránky sa vložia parserom (blokujú vykreslenie) LEN na jej ceste — index.html je SPA záloha všetkých.
+  const linkTags = [...links].map((h) => `<link rel="stylesheet" href="${h}">`).join('');
+  // Len homepage — /login, /terms a psy sú vyladené bez toho (merané 7.–8. 10.), nemeníme ich.
+  const headLinks = page.onlyPath && linkTags
+    ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)})document.write(${JSON.stringify(linkTags)})</script>`
+    : '';
+  const html = base.replace('<head>', `<head><script>window.__preDefer=1</script><style>${fontsCss}</style>${headLinks}`).replace('<div id="root"></div>', inject);
   // Stráž: výberový skript je JS v šablóne — `\d` v nej ticho stratí lomítko (stalo sa 8. 10.:
   // heroglyf psa ostal rozbitý). Regex na značky musí prežiť do HTML doslova.
   if (data.some(Boolean) && !html.includes('replace(/__PRE_D([0-9]+)__/g')) throw new Error('výberový skript nevie dosadiť data: URI');
