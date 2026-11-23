@@ -119,6 +119,8 @@ function Vstupne() {
     if (!flowOk || started.current || (ret && /^cs_/.test(ret))) return;
     started.current = true;
     track('vstupne_viewed');
+    // DEV: `?dev=ranks` = rovno hodnosti bez účtu (náhľad/snímky, 23. 11. 2026). V produkcii vetva vypadne.
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('dev') === 'ranks') { setPhase('ranks'); return; }
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session && (Object.keys(guestIds).length > 0 || ret === 'zrusene')) { setPhase('ranks'); return; }
       const pending = readPending();

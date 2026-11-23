@@ -433,7 +433,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.stay.thanks.tagNum': 'pořadové číslo',
   'heroglyph.flow.stay.thanks.join': 'Přidat se za €11',
   // KONIEC FLOWU: Dobrovoľné vstupné (web, 11. 11. 2026, plany/nakresy/heroflow-cela-obrazovka-2026-11-07/texty-vstupne.json)
-  'heroglyph.flow.vstupne.title': "Občanství",
+  'heroglyph.flow.vstupne.title': "OBČANSTVÍ",
   'heroglyph.flow.vstupne.intro': "DOGYPT je „státem“ pro pejskaře a jejich psy. Členství je ZDARMA, ale fungovat můžeme jen díky vaší podpoře.",
   'heroglyph.flow.vstupne.d0': 'Všechny funkce fungují bez rozdílu. Omezení má jen to, co nás stojí peníze: datové úložiště a AI kredity...',
   'heroglyph.flow.vstupne.tw1': "„Jedna káva“ měsíčně nám pomůže pokrýt provoz: servery, mapy, AI…",

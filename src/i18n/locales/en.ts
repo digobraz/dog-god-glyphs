@@ -633,7 +633,7 @@ export const en = {
   'heroglyph.flow.stay.thanks.tagNum': 'serial number',
   'heroglyph.flow.stay.thanks.join': 'Join for €11',
   // KONIEC FLOWU: Dobrovoľné vstupné (web, 11. 11. 2026, plany/nakresy/heroflow-cela-obrazovka-2026-11-07/texty-vstupne.json)
-  'heroglyph.flow.vstupne.title': "Citizenship",
+  'heroglyph.flow.vstupne.title': "CITIZENSHIP",
   'heroglyph.flow.vstupne.intro': "DOGYPT is a “state” for dog people and their dogs. Membership is FREE, but we can only keep going thanks to your support.",
   'heroglyph.flow.vstupne.d0': 'Every feature works for everyone. Only what costs us money has a limit: data storage and AI credits...',
   'heroglyph.flow.vstupne.tw1': "“One coffee” a month helps us cover the running costs: servers, maps, AI…",
