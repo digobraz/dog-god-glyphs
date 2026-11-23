@@ -50,6 +50,7 @@
 import { ThinArrow } from '@/components/pack/ThinArrow';
 import { reviewFromWalk } from '@/components/pack/trip/tripCommentsData';
 import { sizedUrl } from '@/services/cloudinaryService';
+import { useTripAuthors } from '@/components/pack/feed/feedData';
 import { MyLocIcon } from '@/components/pack/MyLocIcon';
 import { usePublishPilgrimLevel } from '@/components/pack/usePilgrimStats';
 import { trackPack } from '@/lib/packAnalytics';
@@ -111,7 +112,7 @@ import ainubisFace from '@/assets/ainubis-head.webp';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { useMyEventCount } from '@/components/pack/events/eventStore';
 import {
-  ICON, authorOf, REGION_OF, regionLabel, diffMarkShape, DiffMark, CrowdMark, RouteMark, TypeMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
+  ICON, authorOf, AUTHOR_FALLBACK, REGION_OF, regionLabel, diffMarkShape, DiffMark, CrowdMark, RouteMark, TypeMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, coverPos, hasRouteMetrics, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, translateLocalTrailDesc, translateLocalTrailName, backfillLocalTrailTranslations, makeTripUrlSlug, tripName, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
@@ -371,20 +372,26 @@ migrateSeedEvents();
  * majiteľa. Silueta bola pri každom výlete tá istá kresba, teda nehovorila, ktorý pes tam bol;
  * niesla len to, že pes existuje, čo v appke o psoch nie je informácia. Zostáva jeden kruh:
  * ten, ktorý naozaj identifikuje konkrétneho človeka.
- * FLAG (nezmenené): majiteľ je stále iniciála v kruhu, nie jeho fotka. Reálne per-trip fotky
- * potrebujú dátové polia, ktoré `HeroTrail` nemá.
+ * 🔁 23. 11. 2026 FOTKA AUTORA (Matej: „tam musí byť ikonka … fotka autora", nie oranžový krúžok s písmenom):
+ * členský výlet berie fotku z `feed_trip_authors` (ten istý zdroj ako karta výletu vo FEEDe), katalógový
+ * výlet („Hekthor & Matej") nesie fotku zakladateľa. Iniciála ostáva len ako záloha, keď autor fotku nemá.
  */
-function AuthorAvatars({ author, size }: { author: string; size: number }) {
+function AuthorAvatars({ author, size, photo }: { author: string; size: number; photo?: string | null }) {
   const t = useT();
   const pairStyle = { '--trp-av-size': `${size}px` } as React.CSSProperties;
+  const img = photo ? sizedUrl(photo, 80) || photo : author === AUTHOR_FALLBACK ? FOUNDER_AUTHOR_PHOTO : null;
   return (
     <span className="trp-avatarpair" style={pairStyle}>
-      <span className="trp-avatarcircle trp-avatarcircle--placeholder" title={t('pack.map.authorOwnerPlaceholder')}>
-        {author.charAt(0).toUpperCase()}
-      </span>
+      {img
+        ? <span className="trp-avatarcircle" title={author} style={{ backgroundImage: `url('${img}')` }} />
+        : <span className="trp-avatarcircle trp-avatarcircle--placeholder" title={t('pack.map.authorOwnerPlaceholder')}>
+            {author.charAt(0).toUpperCase()}
+          </span>}
     </span>
   );
 }
+/** Fotka zakladateľa pre katalógové výlety (orez z `about-matej.webp`, 96 px). */
+const FOUNDER_AUTHOR_PHOTO = '/images/autor-matej.webp';
 
 // bez náročnosti (vodná plocha, viď isWaterTrail) → radí sa na koniec bez ohľadu na smer
 // (Easiest aj Hardest), nie na 'Hard' pozíciu ako predtým fabrikovaný fallback 'Moderate' robil.
@@ -4860,6 +4867,9 @@ export default function PackMap() {
   }, [searchParams]);
   const pubTrails = useMagnetMemberTrails(!!mg);
   const allTrails = useMemo(() => [...(mg ? pubTrails : []), ...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails, mg, pubTrails]);
+  // Fotky autorov členských výletov (podpis „by …" v karte a v detaile) — katalóg ich nemá, ten nesie zakladateľa
+  const authorSlugs = useMemo(() => allTrails.filter((tr) => tr.author && tr.author !== AUTHOR_FALLBACK).map((tr) => tr.id), [allTrails]);
+  const tripAuthors = useTripAuthors(mg ? [] : authorSlugs);
   // Magistrály na prevzatie sú čiernobiele, kým ich niekto zo svorky neprejde (`isGhostJourney`).
   const packWalked = usePackWalked(walkedIds);
   // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
@@ -6981,7 +6991,7 @@ export default function PackMap() {
               (Matej 2026-07-22 — walked count sa presunul sem z crowd stĺpca). */}
           <div className="trp-bigcard-foot">
             <div className="trp-bigcard-authorrow">
-              <AuthorAvatars author={authorOf(tr)} size={16} />
+              <AuthorAvatars author={authorOf(tr)} size={16} photo={tripAuthors.get(tr.id)?.photo} />
               <button
                 type="button"
                 className="trp-bigcard-author trp-authorbtn"
@@ -7180,7 +7190,7 @@ export default function PackMap() {
                     )}
                     {/* bod 6 (iterácia 16): dva avatary (majiteľ+pes) vedľa "by {author}" */}
                     {!isGhostJourney(dt, packWalked) && <div className="trp-inldet-authorrow">
-                      <AuthorAvatars author={authorOf(dt)} size={22} />
+                      <AuthorAvatars author={authorOf(dt)} size={22} photo={tripAuthors.get(dt.id)?.photo} />
                       <button
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
