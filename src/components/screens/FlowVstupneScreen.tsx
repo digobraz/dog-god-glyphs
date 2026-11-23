@@ -415,7 +415,7 @@ const SUBBLOCK = `background:${PACK_BOX.subblock.background};border:${PACK_BOX.s
 const VSTUPNE_CSS = `
 .vs-col { width: 100%; max-width: 576px; display: flex; flex-direction: column; gap: ${PACK_SPACE.sm}px; }
 .vs-form { display: flex; flex-direction: column; align-items: center; gap: ${PACK_SPACE.md}px; text-align: center; }
-.vs-h1 { margin: 0; text-align: center; font-size: ${PACK_TEXT.h1}px; line-height: 1.1; text-transform: uppercase; color: #000; }
+.vs-h1 { margin: 0; text-align: center; white-space: pre-line; font-size: ${PACK_TEXT.h1}px; line-height: 1.1; text-transform: uppercase; color: #000; }
 .vs-sub { margin: 0; text-align: center; font-size: ${PACK_TEXT.body}px; line-height: 1.4; color: ${LAB.ink}; }
 .vs-sub b { color: #000; }
 .vs-guard { width: 72px; height: 72px; object-fit: contain; }
