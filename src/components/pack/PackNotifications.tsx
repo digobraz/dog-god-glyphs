@@ -52,7 +52,7 @@ const T = PACK_THEME;
 
 // Papyrus 3D (9. 11. 2026, hárok K5): systémový riadok upozornení nesie ikonku z továrne (SysIcon) namiesto chvosta.
 // Osoby (lajky, komentáre, nasledovanie) majú ďalej TVÁR človeka — tu sa ich nič netýka.
-const ntfSys = (kind: string) => (kind.startsWith('event_') ? 'pridaj-podujatie' : kind.startsWith('wish_') ? 'pridaj-tripwish' : kind.startsWith('trip_') ? 'pridaj-vylet' : 'zvoncek');
+const ntfSys = (kind: string) => (kind.startsWith('event_') ? 'pridaj-podujatie' : kind.startsWith('wish_') ? 'pridaj-tripwish' : kind.startsWith('trip_') ? 'pridaj-vylet' : 'vlk'); // vlk namiesto zvončeka aj v riadkoch (Matej 23. 11.)
 
 /** Tvár človeka v riadku upozornenia; bez fotky prvé písmeno mena. */
 function PersonFace({ al }: { al: PackAlert }) {
