@@ -488,9 +488,10 @@ export default function InvoiceRender() {
     }
     .paid-stamp small { display: block; font-size: 8px; letter-spacing: .34em; font-weight: 500; margin-top: 1.5mm; opacity: .85; }
     .seal {
-      position: absolute; left: 50%; bottom: 24mm;
+      position: absolute; left: 50%; bottom: 20mm;
       transform: translateX(-50%) rotate(-5deg);
-      width: 34mm; height: 34mm; z-index: 3;
+      /* 46 mm (bolo 34) — Matej 24. 11.: „na fakture daj pečať väčšiu“ */
+      width: 46mm; height: 46mm; z-index: 3;
     }
     .seal img {
       width: 100%; height: 100%; object-fit: contain;
@@ -500,7 +501,7 @@ export default function InvoiceRender() {
     /* Pečať sa zmenší LEN keď by do nej narazil obsah (Matej 25. 9. 2026:
        *„nevidím dôvod prečo pri 4 psoch je menšia pečať“*). Triedu dáva meranie
        pred data-render-ready, nie počet psov. */
-    #invoice-page.tight .seal { width: 22mm; height: 22mm; bottom: 22mm; }
+    #invoice-page.tight .seal { width: 28mm; height: 28mm; bottom: 20mm; }
     .note { margin: 0; font-size: 9px; line-height: 1.7; color: var(--ink-faint); flex: 0 1 92mm; }
     .note b { color: var(--ink-soft); font-weight: 600; }
     .foot {
