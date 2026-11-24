@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { LAPIS, LAPIS_BTN_SHADOW } from '../pack/navGoldSkin';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -64,7 +63,6 @@ export function WallSearchResults({ hits, onGo, edgeBase, anonKey }: Props) {
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  useEffect(() => { ensureDogVisionFilter(); }, []);
   // Nový výsledok hľadania zavrie rozbalený formulár — patril inému psovi.
   const keys = hits.map((h) => h.key).join('|');
   useEffect(() => { setJoinKey(null); setState('idle'); setEmail(''); }, [keys]);
@@ -92,7 +90,7 @@ export function WallSearchResults({ hits, onGo, edgeBase, anonKey }: Props) {
       {joinDog ? (
         <div className="ws-join">
           <div className="ws-row ws-row--head">
-            <img className="ws-ph is-vision" src={joinDog.photo} alt="" draggable={false} />
+            <img className="ws-ph" src={joinDog.photo} alt="" draggable={false} />
             <span className="ws-name">{joinDog.name}</span>
           </div>
           {state === 'sent' ? (
@@ -124,7 +122,7 @@ export function WallSearchResults({ hits, onGo, edgeBase, anonKey }: Props) {
             <div className="ws-row" key={d.key}>
               <button type="button" className="ws-go" onClick={() => onGo(d)}>
                 {d.photo
-                  ? <img className={`ws-ph${d.n ? '' : ' is-vision'}`} src={d.photo} alt="" draggable={false} />
+                  ? <img className="ws-ph" src={d.photo} alt="" draggable={false} />
                   : <span className="ws-ph" />}
                 <span className="ws-tx">
                   <span className="ws-name">{d.name}</span>
@@ -165,7 +163,6 @@ const WS_CSS = `
   flex: none; width: 40px; height: 40px; border-radius: 999px; object-fit: cover;
   background: rgba(201,154,63,0.2); box-shadow: 0 0 0 1.5px rgba(201,154,63,0.9);
 }
-.ws-ph.is-vision { filter: url(#dogypt-dog-vision); }
 .ws-tx { display: flex; flex-direction: column; min-width: 0; }
 .ws-name {
   font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; letter-spacing: 0.06em;

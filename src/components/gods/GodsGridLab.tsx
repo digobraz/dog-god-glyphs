@@ -23,7 +23,6 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { LIVE_EDGE_BASE, EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { WallSearchResults, matchDogs, isNameQuery, type WallSearchDog } from './wallSearch';
 import {
   NAV_R, NAV_GOLD, NAV_FRAME_BG, NAV_FRAME_BLEND, NAV_PLATE_BG, NAV_PLATE_BLEND,
@@ -419,7 +418,7 @@ function toCardData(dog: RealDog, t: (k: string) => string): DogCardData {
     message: pending ? '' : (dog.owner_message || guestLine || (hektor ? t('wall.hektor.msg') : '')),
     birthDate: dog.birth_date || null,
     guest: !member,
-    status: !tier ? '' : pending ? t('wall.status.pending') : member ? '' : t(`wall.status.${tier}`),
+    status: !tier ? '' : pending ? t('wall.status.pending') : '', // hosť bez riadku (24. 11. 2026)
   };
 }
 
@@ -1393,7 +1392,6 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
     // ako originál (vrátane #čísla + správy) — slúži len nato aby WALL nebola prázdna.
     // Nových psov pribúda od stredu (špirála) a postupne tieto duplikáty prepisujú.
     function makeRealDogCard(dog: RealDog, col: number, row: number, fill = false) {
-      ensureDogVisionFilter();
       const cc = countryToISO2(dog.country);
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
@@ -1410,8 +1408,7 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       const openMsg = pending ? '' : (dog.owner_message || guestLine || '');
       const status = !tier ? ''
         : pending ? tRef.current('wall.status.pending')
-        : tier === 'member' ? '' // číslo nesie odznak; Lab riadok člena nemal
-        : tRef.current(`wall.status.${tier}`);
+        : ''; // člen: číslo nesie odznak · hosť: riadok zrušený 24. 11. 2026
 
       const el = document.createElement('article');
       el.className = (fill ? 'dog-card dog-card--fill' : 'dog-card')
@@ -2319,14 +2316,12 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
           padding: 2px 11px;
         }
         /* ── HOSŤ NA STENE — prenesené z GodsGrid 3. 10. 2026 (po SWAPe je toto
-           homepage). PSIE VIDENIE (Matej 26. 9.): pes bez člena je v spektre, ako
-           ho vidia psy, kým človek nezaplatí €11. Čaká na AINUBISA = stmavnutý
-           a rozmazaný (25. 9.). Filter definuje ensureDogVisionFilter(). */
+           homepage). PSIE VIDENIE zrušené 24. 11. 2026 — hosť je v plnej farbe.
+           Čaká na AINUBISA = stmavnutý a rozmazaný (25. 9.). */
         .card-open-status {
           margin-top: 6px; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
           color: rgba(201,154,63,0.85); text-align: center;
         }
-        .dog-card--nomember:not(.dog-card--pending) .card-img { filter: url(#dogypt-dog-vision); }
         .dog-card--pending .card-img,
         .dog-card--pending .dog-heroglyph,
         .dog-card--pending .card-open-heroglyph { filter: blur(6px) brightness(0.45); }

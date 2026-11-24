@@ -7,7 +7,6 @@ import { useT } from '@/i18n/LanguageContext';
 import { dogPagePath } from '@/lib/dogSlug';
 import { track } from '@/lib/analytics';
 import { dogShareLink } from '@/lib/useShareCard';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { HandShare } from '@/components/pack/HandIcons';
 import { DogMessage, DOG_MESSAGE_CSS } from './DogMessage';
@@ -89,7 +88,6 @@ export function DogCardBody({ dog, where, edgeBase, anonKey }: Props) {
   const [email, setEmail] = useState('');
   const [sendState, setSendState] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  useEffect(() => { if (dog.guest) ensureDogVisionFilter(); }, [dog.guest]);
   // Iný pes = iná karta: rozbalený formulár aj „skopírované" patrili predošlému.
   useEffect(() => { setCopied(false); setJoinOpen(false); setEmail(''); setSendState('idle'); }, [dog.key]);
   useEffect(() => {
@@ -141,7 +139,7 @@ export function DogCardBody({ dog, where, edgeBase, anonKey }: Props) {
   return (
     <>
       <div className="pp-photo-wrap">
-        <img className={`pp-photo${dog.guest ? ' is-vision' : ''}`} src={dog.photo} alt="" draggable={false} />
+        <img className="pp-photo" src={dog.photo} alt="" draggable={false} />
         {/* Poradové číslo ako PEČAŤ na spodnej hrane fotky — tá istá dvojica
             fotka+číslo, akú človek pozná z dlaždice v stene. */}
         {dog.n != null && !dog.guest && <span className="pp-seal">#{dog.n}</span>}
@@ -250,7 +248,6 @@ export const DOG_CARD_CSS = `
   border: 2px solid rgba(201,154,63,0.85);
   box-shadow: 0 6px 18px -6px rgba(70,46,12,0.5);
 }
-.pp-photo.is-vision { filter: url(#dogypt-dog-vision); }
 .pp-name {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   font-size: 1.5rem;

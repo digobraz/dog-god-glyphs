@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ensureDogVisionFilter } from '@/lib/dogVision';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import { useT } from '@/i18n/LanguageContext';
@@ -766,7 +765,6 @@ function GodsGridInner() {
     // ako originál (vrátane #čísla + správy) — slúži len nato aby WALL nebola prázdna.
     // Nových psov pribúda od stredu (špirála) a postupne tieto duplikáty prepisujú.
     function makeRealDogCard(dog: RealDog, col: number, row: number, fill = false) {
-      ensureDogVisionFilter();
       const cc = countryToISO2(dog.country);
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
@@ -786,7 +784,7 @@ function GodsGridInner() {
       const status = !tier ? ''
         : pending ? tRef.current('wall.status.pending')
         : tier === 'member' ? tRef.current('wall.status.member').replace('{n}', String(packNum))
-        : tRef.current(`wall.status.${tier}`);
+        : ''; // hosť bez riadku — Matej 24. 11. 2026: „už to nie je pravda“
 
       const el = document.createElement('article');
       el.className = (fill ? 'dog-card dog-card--fill' : 'dog-card')
@@ -1549,10 +1547,8 @@ function GodsGridInner() {
           color: rgba(201,154,63,0.85); text-align: center;
         }
         /* Čaká na AINUBISA: pes na stene JE, ale stmavnutý a rozmazaný (Matej 25. 9. 2026). */
-        /* PSIE VIDENIE (Matej 26. 9. 2026): pes bez člena (€0/€3) je na stene v
-           spektre, ako ho vidia psy — modro-žlto, nie plnofarebne. Platí, kým
-           človek nezaplatí €11. Filter definuje ensureDogVisionFilter(). */
-        .dog-card--nomember:not(.dog-card--pending) .card-img { filter: url(#dogypt-dog-vision); }
+        /* PSIE VIDENIE ZRUŠENÉ (Matej 24. 11. 2026): hosť je na stene v plnej
+           farbe ako člen — „už budú všetci na hall normálne bez filtra“. */
         .dog-card--pending .card-img,
         .dog-card--pending .dog-heroglyph,
         .dog-card--pending .card-open-heroglyph { filter: blur(6px) brightness(0.45); }
@@ -2547,4 +2543,4 @@ function GodsGridInner() {
   );
 }
 
-// Filter „ako vidí pes“ žije v `@/lib/dogVision` (zdieľa ho aj ZADRŽANIE v pokladni).
+// Filter „ako vidí pes“ (`@/lib/dogVision`) stena od 24. 11. 2026 nepoužíva — hosť je v plnej farbe.
