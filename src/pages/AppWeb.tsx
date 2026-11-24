@@ -478,8 +478,14 @@ export default function AppWeb() {
     const root = document.documentElement;
     root.classList.add('aw-jump');
     const show = () => root.classList.remove('aw-jump');
-    const safety = setTimeout(show, 1500);
-    const t = setTimeout(() => scrollToId(id, false, show), 60);
+    const safety = setTimeout(show, 2500);
+    /* Na LIVE vzniká sekcia neskôr než zvyšok stránky (lazy) — čaká sa na ňu, inak hero prebliklo. */
+    let t = 0;
+    const wait = (n: number) => {
+      if (document.getElementById(id) || n > 40) scrollToId(id, false, show);
+      else t = window.setTimeout(() => wait(n + 1), 50);
+    };
+    t = window.setTimeout(() => wait(0), 30);
     return () => { clearTimeout(t); clearTimeout(safety); show(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
