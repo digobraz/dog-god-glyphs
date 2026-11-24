@@ -450,7 +450,7 @@ async function render3dDog(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o
   const big = ig ? 120 : 96;
   const gW = o.glyph ? Math.min(760, (ig ? 230 : 190) * o.glyph.width / o.glyph.height) : 0;
   const gH = o.glyph ? gW * o.glyph.height / o.glyph.width : 0;
-  const frameH = o.glyph ? gH + 48 : 0;
+  const frameH = gH; // heroglyf bez rámika (Matej 24. 11.)
   const tH = title3d(ctx, d.name, cx, 0, big, true);
   const contentTop = end - tH - (o.glyph ? 36 + frameH : 0);
   const pillH = ig ? 104 : 88;
@@ -477,12 +477,16 @@ async function render3dDog(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o
   }
 
   const ty = title3d(ctx, d.name, cx, contentTop, big, false);
+  // Heroglyf ČIERNY a BEZ RÁMIKA (Matej 24. 11.: „heroglyf má byť čierny a bez rámika“) — prefarbený atramentom
+  // ako nápis DOG|YPT dole; PNG heroglyfu má priehľadné pozadie, takže ostane len kresba.
   if (o.glyph) {
-    const fw = gW + 64, fx = cx - fw / 2, fy = ty + 36;
-    rr(ctx, fx, fy + 9, fw, frameH, 28); ctx.fillStyle = P3D.goldSolid; ctx.fill();
-    rr(ctx, fx, fy, fw, frameH, 28); ctx.fillStyle = P3D.paperHi; ctx.fill();
-    ctx.lineWidth = 6; ctx.strokeStyle = P3D.ink; ctx.stroke();
-    ctx.drawImage(o.glyph, cx - gW / 2, fy + 24, gW, gH);
+    const gc = document.createElement('canvas'); gc.width = Math.round(gW * 2); gc.height = Math.round(gH * 2);
+    const gx = gc.getContext('2d');
+    if (gx) {
+      gx.drawImage(o.glyph, 0, 0, gc.width, gc.height);
+      gx.globalCompositeOperation = 'source-in'; gx.fillStyle = P3D.ink; gx.fillRect(0, 0, gc.width, gc.height);
+      ctx.drawImage(gc, cx - gW / 2, ty + 36, gW, gH);
+    }
   }
 
   if (ig) {

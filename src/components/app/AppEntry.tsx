@@ -521,9 +521,9 @@ const APP_ENTRY_CSS = `
 .ae-gate.is-open .ae-leaf--l { transform: translateX(-102%); }
 .ae-gate.is-open .ae-leaf--r { transform: translateX(102%); }
 /* Hlava psa 2026 v LAPISE (Matej 20. 10.: „asi by som ho dal v lapise"), maska SVG = kresba 1:1 z kitu.
-   Len hlava bez nápisu (Matej 24. 11.), preto užšia než staré logo s nápisom (78 %). */
+   Len hlava bez nápisu (Matej 24. 11.: „môže byť väčšia ako navrhuješ“ — 66 % navrhnuté, 72 % zvolené). */
 .ae-medal-logo {
-  display: block; width: 58%; aspect-ratio: 1; transform: translate(2%, -2px);
+  display: block; width: 72%; aspect-ratio: 1; transform: translate(2%, -2px);
   background: ${LAPIS.deep};
   -webkit-mask-position: center; mask-position: center;
   -webkit-mask-size: contain; mask-size: contain;
