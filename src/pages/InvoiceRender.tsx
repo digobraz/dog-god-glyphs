@@ -494,8 +494,8 @@ export default function InvoiceRender() {
     }
     .seal img {
       width: 100%; height: 100%; object-fit: contain;
-      filter: sepia(.4) saturate(1.2) hue-rotate(-6deg) opacity(.92);
-      mix-blend-mode: multiply;
+      /* pečať 2026 = lapis + zlatá hlava (Matej 24. 11.: „novú pečať - modro zlatú iba s ikonkou“) — farbu nesie sama, bez sépie */
+      opacity: .96;
     }
     /* Pečať sa zmenší LEN keď by do nej narazil obsah (Matej 25. 9. 2026:
        *„nevidím dôvod prečo pri 4 psoch je menšia pečať“*). Triedu dáva meranie
@@ -517,7 +517,7 @@ export default function InvoiceRender() {
 
   const seal = (
     <div className="seal">
-      <img src="https://dogypt.com/images/peciat-dogypt.png" alt="DOGYPT seal" />
+      <img src="https://dogypt.com/images/peciat-dogypt-2026.png" alt="DOGYPT seal" />
     </div>
   );
 
@@ -534,7 +534,7 @@ export default function InvoiceRender() {
             <div className="brand">
               <img
                 className="logo"
-                src="https://dogypt.com/images/dogypt-logo-black-w.png"
+                src="https://dogypt.com/images/dogypt-nazov-black.png"
                 alt="DOGYPT"
               />
               <div className="tag">In Dog We Trust</div>
