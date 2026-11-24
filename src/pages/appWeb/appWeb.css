@@ -1915,9 +1915,9 @@ html:has(.aw .planet-live.v2 .gbb-row),body:has(.aw .planet-live.v2 .gbb-row){ov
 
 /* LOGO 2026 v hlavičke (24. 11. 2026, Matej): svetlejší pás pod hlavičkou, nech sa papyrusová dlaždica nestráca;
    menu na PC späť na štítok 12 px */
-.aw .top:not(.stuck):not(.dark){background:linear-gradient(180deg,rgba(251,245,230,.94) 0%,rgba(251,245,230,.78) 62%,rgba(251,245,230,0) 100%)}
+.aw .top:not(.stuck):not(.dark):not(.sx-onphoto){background:linear-gradient(180deg,rgba(251,245,230,.94) 0%,rgba(251,245,230,.78) 62%,rgba(251,245,230,0) 100%)}
 @media(min-width:1000px){.aw .top nav a{font-size:var(--t-label)}}
-/* na území AINUBISA (tmavá hlavička) biely nápis loga */
+/* na území AINUBISA (tmavá hlavička) a na fotke /story biely nápis loga */
 .aw .logo .on-dark{display:none}
-.aw .top.dark .logo .on-light{display:none}
-.aw .top.dark .logo .on-dark{display:block}
+.aw .top.dark .logo .on-light,.aw .top.sx-onphoto:not(.mm-open) .logo .on-light{display:none}
+.aw .top.dark .logo .on-dark,.aw .top.sx-onphoto:not(.mm-open) .logo .on-dark{display:block}
