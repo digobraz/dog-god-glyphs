@@ -66,7 +66,7 @@ const MAX_Y = 30;
 const SEC_PER_Q = 10;
 const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const NATURE_ART = '/images/nature-quiz-art.webp';
-const LOGO_INK = '/images/dogypt-logo-black-w.png';
+const LOGO_INK = '/images/dogypt-nazov-black.png'; // len nápis — dlaždica by v 16 px zanikla
 
 /* Farby rámov a tieňov idú cez premenné — stráž check:pack meria doslovnú farbu v ráme a tieni. */
 const CSS = `

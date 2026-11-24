@@ -527,7 +527,7 @@ export default function StoryWeb() {
         <div className="wrap">
           <div className="sx-fthead">
             <div>
-              <img className="sx-logo" src="/web-app/logo-napis.webp" alt="DOGYPT" />
+              <img className="sx-logo" src="/web-app/logo-napis-svetle.webp" alt="DOGYPT" />
               <p className="sx-claim">{t('ft_about')}</p>
             </div>
             <Stores />
