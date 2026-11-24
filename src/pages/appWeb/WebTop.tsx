@@ -59,7 +59,7 @@ export const WebTop = forwardRef<HTMLElement, Props>(function WebTop({ c, v2, ba
   return (
     <header className={`top${v2 ? ' v2' : ''}${cls ? ` ${cls}` : ''}`} ref={setHdr}>
       <div className="wrap">
-        <a className="logo" href={base || '#'} aria-label="DOGYPT"><img src="/web-app/logo-napis.webp" alt="DOGYPT" /></a>
+        <a className="logo" href={base || '#'} aria-label="DOGYPT"><img className="on-light" src="/web-app/logo-napis.webp" alt="DOGYPT" /><img className="on-dark" src="/web-app/logo-napis-svetle.webp" alt="" /></a>
         <nav onClick={onNav}>{links}</nav>
         <div className="lang-wrap">
           <button className="lang" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}><img src={flagUrl(curLang.flag, 40)} alt="" />{curLang.code.slice(0, 2).toUpperCase()}</button>
