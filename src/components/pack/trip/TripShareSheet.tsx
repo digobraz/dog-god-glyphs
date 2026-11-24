@@ -25,7 +25,7 @@ import { createPortal } from 'react-dom';
 import { useSheetSwipe } from '@/components/pack/useSheetSwipe';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
-import logoGold from '@/assets/dogypt-logo-gold.webp';
+import logoGold from '@/assets/dogypt-nazov-zlate-2026.webp'; // nápis DOG|YPT z kitu 2026 (prefarbuje sa na atrament)
 import { sizedUrl } from '@/services/cloudinaryService';
 import { flagUrl } from '@/lib/flagUrl';
 import { IS_APP } from '@/lib/isApp';

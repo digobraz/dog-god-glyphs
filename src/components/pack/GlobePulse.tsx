@@ -8,7 +8,7 @@ import { GOLD_BLOCK_CSS } from './navGoldSkin';
 import { Ranking, RankingBoardsModal } from './Ranking';
 import { TransparentStats } from './TransparentStats';
 import { countryCentroid, countryISO2, iso2ToISO3 } from '@/lib/countryGeo';
-import dogSilhouette from '@/assets/dogypt-logo-mobile.webp';
+import dogSilhouette from '@/assets/dogypt-hlava-zlata-2026.webp'; // hlava psa z kitu 2026
 import { intlLocale } from '@/i18n/bcp47';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { localizeBreed } from '@/lib/breedDisplay';
