@@ -46,6 +46,14 @@ import { FARAO_AMOUNTS, RANK_OF_CARD, loginUrl, myRank, openPortal, paidRank, st
 import { APP_CHIPS, APPS_TYPE_CSS } from '@/components/lab/filmAppsType';
 import './appWeb/appWeb.css';
 
+/* Skok na kotvu (návrat zo siene na `/#join`) — stránku skry UŽ PRED prvým vykreslením. Efekt beží až po ňom
+   a hero by na LIVE na okamih prebliklo (Matej 24. 11.: „vyzerá to pokazene“). Odkrýva efekt `scrollToId` v AppWeb. */
+if (typeof window !== 'undefined' && (window.location.pathname === '/hall' || /^#[\w-]+$/.test(window.location.hash))
+    && !new URLSearchParams(window.location.search).get('vstupne')) {
+  document.documentElement.classList.add('aw-jump');
+  window.setTimeout(() => document.documentElement.classList.remove('aw-jump'), 2500);
+}
+
 const A = '/web-app';
 /** Šírka nadpisu v „latinských znakoch“: znak CJK/kana/hangul je široký ako ~1,8 latinského (inak japonský nadpis vyjde o polovicu širší než okno). */
 /** `*slovo*` = tučne (podnadpis hero, Matej 22. 11.: „zadarmo daj bold“); `plain` = bez hviezdičiek pre SEO. */
@@ -476,7 +484,7 @@ export default function AppWeb() {
     /* Návrat zo siene (`/#join`) nesmie ukázať hero a potom zrolovať (Matej 24. 11.: „vyzerá to pokazene“):
        stránka je skrytá, kým neskočí na sekciu; poistka ju odkryje najneskôr po 1,5 s. */
     const root = document.documentElement;
-    root.classList.add('aw-jump');
+    root.classList.add('aw-jump'); // už je nastavené pri načítaní modulu (vyššie) — tu len pre istotu
     const show = () => root.classList.remove('aw-jump');
     const safety = setTimeout(show, 2500);
     /* Na LIVE vzniká sekcia neskôr než zvyšok stránky (lazy) — čaká sa na ňu, inak hero prebliklo. */

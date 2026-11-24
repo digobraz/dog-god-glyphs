@@ -289,7 +289,7 @@ const loadMuseumLight = () => (museumLight ??= new FontFace('LT Museum Light', '
 function title3d(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, big: number, dry: boolean): number {
   let size = big, lines: string[] = [];
   for (; size >= 52; size -= 4) {
-    ctx.font = `900 ${size}px ${MUSEUM}`; lines = wrap(ctx, text, 940);
+    ctx.font = `900 ${size}px ${MUSEUM}`; lines = wrap(ctx, text.toUpperCase(), 940); // meno psa vždy kapitálkami (Matej 25. 11.), ako `title()` na webe
     if (lines.length <= 2) break;
   }
   if (lines.length > 2) { lines = lines.slice(0, 2); lines[1] = `${lines[1].replace(/\s*\S*$/, '')}…`; }
