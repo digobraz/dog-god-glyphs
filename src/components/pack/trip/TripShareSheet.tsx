@@ -279,6 +279,12 @@ async function render(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: Ren
 // Písmo LT Museum (Black) sa načíta cez `document.fonts.load` pred kreslením, inak by canvas sadol na serif.
 const P3D = { ink: '#2a1608', gold: '#C99A3F', goldSolid: '#A3782B', paper: '#F3E4C4', paperHi: '#F9F2E3', star: '#F5C73D', starOff: '#E4D6B4' };
 const MUSEUM = '"LT Museum", serif';
+// Motto pod nápisom v LIGHT (Matej 24. 11.: „in dog we trust dajme medium/normal nie hrubé“ → „daj light“).
+// „LT Museum“ je v appke celé namapované na Black (`papyrus3d.ts`), preto light ide ako samostatná rodina.
+const MUSEUM_LIGHT = '"LT Museum Light", serif';
+let museumLight: Promise<unknown> | null = null;
+const loadMuseumLight = () => (museumLight ??= new FontFace('LT Museum Light', 'url(/fonts/museum-light.woff2)')
+  .load().then((f) => { document.fonts.add(f); }).catch(() => undefined));
 /** Názov v LT Museum, bez veľkých písmen; najväčšie písmo, pri ktorom sa zmestí do dvoch riadkov. Vracia spodok. */
 function title3d(ctx: CanvasRenderingContext2D, text: string, cx: number, y: number, big: number, dry: boolean): number {
   let size = big, lines: string[] = [];
@@ -430,7 +436,7 @@ async function render3d(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o: R
   // motto nikdy širšie ako logo (Matej 23. 10.)
   ctx.fillStyle = P3D.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   let mfs = 34;
-  for (; mfs > 12; mfs -= 1) { ctx.font = `900 ${mfs}px ${MUSEUM}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
+  for (; mfs > 12; mfs -= 1) { ctx.font = `300 ${mfs}px ${MUSEUM_LIGHT}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
   ctx.fillText(tx.motto, cx, mY);
 }
 
@@ -512,7 +518,7 @@ async function render3dDog(cv: HTMLCanvasElement, d: TripShareData, tx: Texts, o
   }
   ctx.fillStyle = P3D.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   let mfs = 34;
-  for (; mfs > 12; mfs -= 1) { ctx.font = `900 ${mfs}px ${MUSEUM}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
+  for (; mfs > 12; mfs -= 1) { ctx.font = `300 ${mfs}px ${MUSEUM_LIGHT}`; if (ctx.measureText(tx.motto).width <= lgW) break; }
   ctx.fillText(tx.motto, cx, mY);
 }
 
@@ -638,7 +644,7 @@ export function TripShareSheet({ data, onClose, kind = 'trip' }: { data: TripSha
   const dataKey = JSON.stringify(data);
 
   useEffect(() => {
-    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"'), document.fonts.load('600 36px "Space Grotesk"'), ...(APP_NEW ? [document.fonts.load('900 80px "LT Museum"')] : [])])
+    Promise.all([document.fonts.load('700 80px Cinzel'), document.fonts.load('700 80px "Cinzel Decorative"'), document.fonts.load('500 38px "Space Grotesk"'), document.fonts.load('600 36px "Space Grotesk"'), ...(APP_NEW ? [document.fonts.load('900 80px "LT Museum"'), loadMuseumLight()] : [])])
       .catch(() => undefined).finally(() => setFontsOk(true));
   }, []);
   useEffect(() => {
