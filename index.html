@@ -5,6 +5,16 @@
     <!-- Appka hovorí 18 jazykmi sama — prekladač prehliadača (Android Chrome) ju len kazil. 14. 10. 2026 -->
     <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- SKOK NA KOTVU (25. 11. 2026): návrat zo siene na `/#join` — predrenderovaná hero stránka sa nesmie ukázať
+         skôr, než AppWeb skočí na sekciu (Matej: „vyzerá to pokazene“). Odkrýva `scrollToId` v AppWeb, poistka 2,5 s. -->
+    <script>
+      (function () {
+        if (!(location.pathname === '/hall' || (location.pathname === '/' && /^#[\w-]+$/.test(location.hash))) || /[?&]vstupne=/.test(location.search)) return;
+        var d = document.documentElement; d.classList.add('aw-jump');
+        var st = document.createElement('style'); st.textContent = 'html.aw-jump #pre,html.aw-jump .aw{visibility:hidden}'; document.head.appendChild(st);
+        setTimeout(function () { d.classList.remove('aw-jump'); }, 2500);
+      })();
+    </script>
     <!-- FOTKY CEZ CACHE CLOUDFLARE (14. 11. 2026): `res.cloudinary.com/dz8lolmod/…` → `/cdn/…` (Worker `cdn`).
          Jedno pravidlo pre skripty nižšie (predbežné sťahovanie dlaždíc) aj src/lib/cdnFoto.ts.
          Vypnuté: localhost (DEV), robot (webdriver) má len `/cdn-cgi/image` bez Workera, `localStorage.priamoFoto = '1'`. Appka ide cez dogypt.com. -->
