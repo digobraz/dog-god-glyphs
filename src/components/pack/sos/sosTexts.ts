@@ -447,6 +447,8 @@ export const SOS_TEXTS = {
   'pack.sos.aid.zoznam': T('Pack', 'Zbaľ si', 'Sbal si'),
   'pack.sos.aid.nikdy': T('Never', 'Nikdy', 'Nikdy'),
   'pack.sos.aid.nosig': T('No signal', 'Bez signálu', 'Bez signálu'),
+  // Apple 1.4.1 (25. 11. 2026): prvá pomoc musí povedať, že veterinára nenahrádza — pod zoznamom aj pod kartou
+  'pack.sos.aid.vetNote': T('First aid helps in the first minutes. It does not replace a vet: call one as soon as you can.', 'Prvá pomoc pomáha v prvých minútach. Veterinára nenahrádza: zavolaj mu, hneď ako sa dá.', 'První pomoc pomáhá v prvních minutách. Veterináře nenahrazuje: zavolej mu, jakmile to jde.'),
   'pack.sos.aid.prog': T('{n} of {all} done · tap a step', '{n} z {all} hotové · ťukni na krok', '{n} z {all} hotovo · ťukni na krok'),
   'pack.sos.aid.call': T('Call the emergency vet', 'Zavolať pohotovosť', 'Zavolat pohotovost'),
   'pack.sos.aid.nearest': T('Nearest emergency vet', 'Najbližšia pohotovosť', 'Nejbližší pohotovost'),

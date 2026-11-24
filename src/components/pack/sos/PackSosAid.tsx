@@ -86,6 +86,7 @@ const CSS = `
 .aid-prog{margin:-${S.md}px 0 0;font-size:${PACK_TEXT.body}px;font-weight:500;color:var(--p3d-ink);}
 .aid-fact{padding:${S.xs}px 0 ${S.xs}px ${S.md}px;border-left:4px solid var(--p3d-gold);font-size:${PACK_TEXT.lead}px;line-height:1.45;color:var(--p3d-ink);}
 .aid-fact b{display:block;font-weight:600;}
+.aid-disc{margin:0;padding:0 ${S.md}px;font-size:${PACK_TEXT.label}px;line-height:1.4;color:var(--p3d-ink);opacity:.7;text-align:center;}
 .aid-never{padding:${S.md}px ${S.lg}px;border-radius:${PACK_R.card}px;border:2.5px solid ${T.sosRedDark};background:var(--p3d-paper-hi);box-shadow:var(--p3d-inset);}
 .aid-never b{display:block;font-family:${HEAD};font-weight:400;font-size:${PACK_TEXT.h2}px;line-height:1.15;color:${T.sosRedDark};}
 .aid-never ul{margin:${S.sm}px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:${S.sm}px;}
@@ -147,6 +148,7 @@ export default function PackSosAid() {
             {IS_APP && <span className="aid-offl" title={s('pack.sos.aid.offline')}>OFFLINE</span>}
           </div>
           <AidHome cards={cards} open={open} />
+          <div className="aid-disc">{s('pack.sos.aid.vetNote')}</div>
         </>
       )}
       <div className="aid-pad" aria-hidden />
@@ -300,6 +302,7 @@ function AidCardView({ c, links, open }: { c: AidCard; links: AidLinks; open: (i
           <p>{r(upper(c.bezSignalu))}</p>
         </div>
       )}
+      <div className="aid-disc">{s('pack.sos.aid.vetNote')}</div>
     </>
   );
 }
