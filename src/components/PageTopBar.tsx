@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import dogyptLogo from '@/assets/dogypt-logo-gold.webp';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
-import dogyptLogo2026 from '@/assets/dogypt-logo-2026.webp';
+import dogyptHead2026 from '@/assets/dogypt-hlava-2026.webp';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';
 import LanguagePicker from './LanguagePicker';
@@ -61,14 +61,14 @@ export function PageTopBar({
   const backLabel = backAriaLabel ?? t('nav.aria.back');
   const logo = (
     <>
-      {/* nový heroflow = čisté LOGO 2026 (hlava + DOG|YPT, bez bloku appky) — Matej 24. 11. 2026 */}
+      {/* nový heroflow = len HLAVA z loga 2026, bez nápisu a bez bloku appky — Matej 24. 11. 2026 */}
       <img
-        src={NEW_HEROFLOW ? dogyptLogo2026 : dogyptLogoMobile}
+        src={NEW_HEROFLOW ? dogyptHead2026 : dogyptLogoMobile}
         alt="DOGYPT"
-        className={NEW_HEROFLOW ? 'h-8 object-contain md:hidden' : 'h-10 object-contain md:hidden'}
+        className={NEW_HEROFLOW ? 'h-10 object-contain md:hidden' : 'h-10 object-contain md:hidden'}
       />
       <img
-        src={NEW_HEROFLOW ? dogyptLogo2026 : dogyptLogo}
+        src={NEW_HEROFLOW ? dogyptHead2026 : dogyptLogo}
         alt="DOGYPT"
         className={NEW_HEROFLOW ? 'hidden md:block md:h-11 object-contain' : 'hidden md:block md:h-12 object-contain'}
       />
