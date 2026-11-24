@@ -1,5 +1,6 @@
 import type { PostHog } from 'posthog-js';
 import { POSTHOG_KEY, POSTHOG_HOST } from './env';
+import { IS_APP, APP_PLATFORM } from './isApp';
 
 // Aktuálny jazyk — nastavuje App.tsx (RefCapture) cez useLang. Každý event nesie lang.
 let currentLang = 'en';
@@ -66,6 +67,8 @@ export const initAnalytics = (scrub: (ev: any) => any) => {
       before_send: (ev) => (ev ? scrub(ev) : ev),
     });
     if (isSelf()) ph.register({ internal: true });
+    // Appka má `$host` = localhost — bez značky by sa nedala oddeliť od webu ani od úniku z devu.
+    if (IS_APP) ph.register({ app: true, platform: APP_PLATFORM });
     posthog = ph;
     queue.splice(0).forEach((fn) => { try { fn(ph); } catch { /* ignore */ } });
     vitals.splice(0).forEach(({ props, timestamp }) => { try { ph.capture('web_vital', props, { timestamp }); } catch { /* ignore */ } });
@@ -150,7 +153,9 @@ export const trackPageview = (path: string) => {
 export const upgradeToTier1 = () => {
   run((ph) => {
     ph.set_config({ persistence: 'localStorage+cookie' });
-    if (isSelf()) ph.register({ internal: true }); // zmena persistence volá clear() — značka by zmizla
+    if (isSelf()) ph.register({ internal: true });
+    // Appka má `$host` = localhost — bez značky by sa nedala oddeliť od webu ani od úniku z devu.
+    if (IS_APP) ph.register({ app: true, platform: APP_PLATFORM }); // zmena persistence volá clear() — značka by zmizla
     // Audit 14. 11. 2026: nahrávky len vzorkou ~20 % sedení (rozhodnutie raz za sedenie), eventy ostávajú všetky.
     if (recordThisSession()) ph.startSessionRecording();
   });
@@ -177,6 +182,8 @@ export const downgradeToTier0 = () => {
   run((ph) => {
     ph.stopSessionRecording();
     ph.set_config({ persistence: 'memory' });
-    if (isSelf()) ph.register({ internal: true }); // zmena persistence volá clear() — značka by zmizla
+    if (isSelf()) ph.register({ internal: true });
+    // Appka má `$host` = localhost — bez značky by sa nedala oddeliť od webu ani od úniku z devu.
+    if (IS_APP) ph.register({ app: true, platform: APP_PLATFORM }); // zmena persistence volá clear() — značka by zmizla
   });
 };

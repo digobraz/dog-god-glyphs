@@ -111,8 +111,11 @@ const LIVE_POSTHOG_KEY = 'phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM';
 // `vite preview`), roboty check:live/live-oko a náhľad na workers.dev bežia ako PROD —
 // analytics-watchdog ich chytil 381 udalostí za 24 h v produkčnom projekte. Preto
 // rozhoduje aj ADRESA: mimo verejnej domény sa nemeria.
+// 🔴 24. 11. 2026: natívna appka beží na `capacitor://localhost` / `https://localhost`, takže ju
+// tento test vypínal celú — /pack od presunu členov do appky nemeral nič, hoci obchody majú
+// v štítkoch súkromia PostHog deklarovaný. Appka je výnimka (udalosti nesú `app: true`, analytics.ts).
 const NEMERANY_HOST =
-  typeof window !== 'undefined' &&
+  typeof window !== 'undefined' && !IS_APP &&
   /^(localhost|127\.0\.0\.1|\[::1\]|.*\.workers\.dev|.*\.local)$/.test(window.location.hostname);
 export const POSTHOG_KEY = import.meta.env.PROD
   ? (NEMERANY_HOST ? '' : LIVE_POSTHOG_KEY)
