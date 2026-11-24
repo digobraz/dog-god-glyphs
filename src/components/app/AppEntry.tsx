@@ -21,7 +21,7 @@ const ainubisFace = APP_NEW ? AI_LOGO : ainubisHead;
 import doorImg from '@/assets/app/brana-dvere.webp';
 import pawImg from '@/assets/app/dotyk-labka.webp';
 import handImg from '@/assets/app/dotyk-ruka.webp';
-import logo2026 from '@/assets/app/logo-2026.svg';
+import hlava2026 from '@/assets/app/hlava-2026.svg';
 import { RulesSheet, termsOk } from '@/components/app/TermsGate';
 import { AppWelcome } from '@/components/app/AppWelcome';
 import { callLogin, readPending, registerFreeInApp, savePending, type PubDog, type Sent } from '@/lib/appRegister';
@@ -107,7 +107,7 @@ function Gate({ onDone }: { onDone: () => void }) {
         <i style={{ ...bg, clipPath: `inset(0 ${w - cx}px 0 0)` }} />
         <div className="ae-medal" style={{ transformOrigin: `${cx}px ${cy}px` }}>
           <div className="ae-medal-at" style={{ left: cx, top: cy, ['--medal-k' as string]: (2 * r / 100).toFixed(3) }}>
-            <NavMedallion still flat face={<b className="ae-medal-logo" style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} />} />
+            <NavMedallion still flat face={<b className="ae-medal-logo" style={{ WebkitMaskImage: `url(${hlava2026})`, maskImage: `url(${hlava2026})` }} />} />
           </div>
         </div>
       </div>
@@ -520,9 +520,10 @@ const APP_ENTRY_CSS = `
 .ae-gate.is-open .ae-medal { transform: rotate(-90deg); }
 .ae-gate.is-open .ae-leaf--l { transform: translateX(-102%); }
 .ae-gate.is-open .ae-leaf--r { transform: translateX(102%); }
-/* Logo 2026 v LAPISE (Matej 20. 10.: „asi by som ho dal v lapise"), maska SVG = kresba 1:1. */
+/* Hlava psa 2026 v LAPISE (Matej 20. 10.: „asi by som ho dal v lapise"), maska SVG = kresba 1:1 z kitu.
+   Len hlava bez nápisu (Matej 24. 11.), preto užšia než staré logo s nápisom (78 %). */
 .ae-medal-logo {
-  display: block; width: 78%; aspect-ratio: 1; transform: translateY(-2px);
+  display: block; width: 58%; aspect-ratio: 1; transform: translate(2%, -2px);
   background: ${LAPIS.deep};
   -webkit-mask-position: center; mask-position: center;
   -webkit-mask-size: contain; mask-size: contain;

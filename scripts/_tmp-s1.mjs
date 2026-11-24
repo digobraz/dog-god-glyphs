@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const [out, name='login-app'] = process.argv.slice(2);
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+await ctx.addInitScript(() => localStorage.setItem('dogypt_consent', JSON.stringify({analytics:false,marketing:false,v:1,ts:Date.now()})));
+const p = await ctx.newPage();
+await p.goto('http://127.0.0.1:8082/login?app=1', { waitUntil: 'networkidle' });
+await p.waitForTimeout(1500);
+await p.screenshot({ path: `${out}/${name}.png`, clip: { x: 40, y: 220, width: 310, height: 300 } });
+await b.close();

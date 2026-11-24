@@ -31,7 +31,7 @@ import { BUDDY_LIVE, APP_NEW } from '@/lib/packFlags';
 import { SysIcon } from './SysIcon';
 import { supabase } from '@/integrations/supabase/client';
 import ainubisHead from '@/assets/ainubis-head.webp';
-import logo2026 from '@/assets/app/logo-2026.svg';
+import hlava2026 from '@/assets/app/hlava-2026.svg';
 import { FRESH_NEWS } from '@/data/freshNews';
 import { gridFetch, GRID_URL_ALL } from '@/lib/earlyFetch';
 import { sizedUrl } from '@/services/cloudinaryService';
@@ -461,7 +461,7 @@ export const NotifSheet = forwardRef<HTMLDivElement, Props>(function NotifSheet(
               )}
               {/* Za číslami priesvitná SILUETA loga, priblížený výrez (Matej 23. 10.: „namiesto toho daj priehľadné
                   logo dogyptu za tie čísla… zoomni ho = nemusí byť celé, skôr detail loga"). */}
-              <span className="ntf-logo-clip" aria-hidden><span className="ntf-logo" style={{ WebkitMaskImage: `url(${logo2026})`, maskImage: `url(${logo2026})` }} /></span>
+              <span className="ntf-logo-clip" aria-hidden><span className="ntf-logo" style={{ WebkitMaskImage: `url(${hlava2026})`, maskImage: `url(${hlava2026})` }} /></span>
               {/* Najvýraznejšie: psy a ľudia, pod sebou (Matej 21. 10.). */}
               <span className="ntf-nums" style={{ ['--ntf-len' as string]: numLen }}>
                 <span className="ntf-num"><b>{stats ? fmt(dogs) : '—'}</b><span>{t('pack.notif.dogsWord')}</span></span>
