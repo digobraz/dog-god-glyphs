@@ -473,8 +473,14 @@ export default function AppWeb() {
   useEffect(() => {
     const id = window.location.pathname === '/hall' ? 'join' : window.location.hash.slice(1);
     if (!id || qs.get('vstupne')) return;
-    const t = setTimeout(() => scrollToId(id, false), 400);
-    return () => clearTimeout(t);
+    /* Návrat zo siene (`/#join`) nesmie ukázať hero a potom zrolovať (Matej 24. 11.: „vyzerá to pokazene“):
+       stránka je skrytá, kým neskočí na sekciu; poistka ju odkryje najneskôr po 1,5 s. */
+    const root = document.documentElement;
+    root.classList.add('aw-jump');
+    const show = () => root.classList.remove('aw-jump');
+    const safety = setTimeout(show, 1500);
+    const t = setTimeout(() => scrollToId(id, false, show), 60);
+    return () => { clearTimeout(t); clearTimeout(safety); show(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const sid = qs.get('vstupne');

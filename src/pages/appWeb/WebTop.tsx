@@ -13,16 +13,19 @@ const START = '/heroglyph/name';
 /** Doroluje na sekciu a po dobehnutí ju DOROVNÁ. Sekcie nad cieľom počas rolovania ešte rastú
  *  (dočítané obrázky, odhalenia), takže holý `scrollIntoView` skončil o kus vedľa — PSY napr.
  *  ukázalo planétku len do polovice (Matej 21. 11.). Max 3 dorovnania. */
-export function scrollToId(id: string, smooth = true) {
+export function scrollToId(id: string, smooth = true, done?: () => void) {
   const el = document.getElementById(id);
-  if (!el) return;
+  if (!el) { done?.(); return; }
   let n = 0;
+  /* ⚠️ `behavior: 'auto'` NIE JE skok — preberá `scroll-behavior: smooth` z <html> (index.css), takže aj
+     „okamžitý“ návrat zo siene viditeľne zroloval z hero dole (Matej 24. 11.). Skok = 'instant'. */
   const go = (b: ScrollBehavior) => el.scrollIntoView({ behavior: b, block: 'start' });
   const fix = () => {
     const want = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
-    if (Math.abs(el.getBoundingClientRect().top - want) > 4 && n++ < 3) { go('auto'); setTimeout(fix, 350); }
+    if (Math.abs(el.getBoundingClientRect().top - want) > 4 && n++ < 3) { go('instant' as ScrollBehavior); setTimeout(fix, 350); }
+    else done?.();
   };
-  go(smooth ? 'smooth' : 'auto');
+  go(smooth ? 'smooth' : 'instant' as ScrollBehavior);
   if ('onscrollend' in window && smooth) window.addEventListener('scrollend', () => setTimeout(fix, 120), { once: true });
   else setTimeout(fix, smooth ? 900 : 350);
 }

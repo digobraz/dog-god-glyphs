@@ -1921,3 +1921,5 @@ html:has(.aw .planet-live.v2 .gbb-row),body:has(.aw .planet-live.v2 .gbb-row){ov
 .aw .logo .on-dark{display:none}
 .aw .top.dark .logo .on-light,.aw .top.sx-onphoto:not(.mm-open) .logo .on-light{display:none}
 .aw .top.dark .logo .on-dark,.aw .top.sx-onphoto:not(.mm-open) .logo .on-dark{display:block}
+/* skok na kotvu po načítaní (návrat zo siene) — stránka sa ukáže až na cieli, bez viditeľného rolovania (24. 11. 2026) */
+html.aw-jump .aw{visibility:hidden}
