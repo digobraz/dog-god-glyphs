@@ -2192,7 +2192,7 @@ const PRAYER_GRADIENT = 'var(--brand-gradient)';
 const PTS_PILL: React.CSSProperties = {
   fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 10,
-  fontWeight: 700,
+  fontWeight: 600,
   color: T.card,
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
@@ -3141,7 +3141,7 @@ function DownloadButton({
             {t('pack.dog.docCertificate')}
           </span>
         </span>
-        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 600, flexShrink: 0 }}>
           {enabled ? 'PDF' : '…'}
           {APP_NEW ? <SysIcon name="stiahnut" size={20} /> : <Download className="h-4 w-4" />}
         </span>

@@ -233,7 +233,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
                 border: '1px solid rgba(201, 154, 63, 0.50)',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 13,
-                fontWeight: 700,
+                fontWeight: 600,
                 letterSpacing: '0.04em',
                 color: T.accentGold,
                 lineHeight: 1,
@@ -462,7 +462,7 @@ function DogGridCard({ dog }: { dog: DogNode }) {
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 9.5,
-              fontWeight: 700,
+              fontWeight: 600,
               color: T.accentGold,
               lineHeight: 1,
             }}
@@ -588,7 +588,7 @@ function DogRow({ dog }: { dog: DogNode }) {
                 border: '1px solid rgba(201, 154, 63, 0.50)',
                 fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 11,
-                fontWeight: 700,
+                fontWeight: 600,
                 color: T.accentGold,
                 lineHeight: 1,
               }}

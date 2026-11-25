@@ -388,7 +388,7 @@ const PRAYER_GRADIENT = 'var(--brand-gradient)';
 const PTS_PILL: React.CSSProperties = {
   fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 10,
-  fontWeight: 700,
+  fontWeight: 600,
   color: T.card,
   background: 'rgba(0,0,0,0.22)',
   borderRadius: 999,
