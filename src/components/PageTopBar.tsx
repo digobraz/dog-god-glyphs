@@ -1,8 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
-import dogyptLogo from '@/assets/dogypt-logo-gold.webp';
-import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
 import dogyptHead2026 from '@/assets/dogypt-hlava-2026.webp';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';
@@ -46,8 +44,7 @@ interface PageTopBarProps {
 
 /**
  * DOGYPT canonical top-bar.
- * Mobile pt = 15px (LOCKED 2026-05-26). Mobile logo = silueta h-10
- * (dogypt-logo-mobile.webp, bez DOG YPT cartouche); desktop = full logo h-12.
+ * Mobile pt = 15px (LOCKED 2026-05-26). Logo 2026 = hlava (dogypt-hlava-2026.webp): mobile h-10, desktop h-11.
  * Every new page that needs a top logo MUST use this component.
  */
 export function PageTopBar({
@@ -61,17 +58,9 @@ export function PageTopBar({
   const backLabel = backAriaLabel ?? t('nav.aria.back');
   const logo = (
     <>
-      {/* nový heroflow = len HLAVA z loga 2026, bez nápisu a bez bloku appky — Matej 24. 11. 2026 */}
-      <img
-        src={NEW_HEROFLOW ? dogyptHead2026 : dogyptLogoMobile}
-        alt="DOGYPT"
-        className={NEW_HEROFLOW ? 'h-10 object-contain md:hidden' : 'h-10 object-contain md:hidden'}
-      />
-      <img
-        src={NEW_HEROFLOW ? dogyptHead2026 : dogyptLogo}
-        alt="DOGYPT"
-        className={NEW_HEROFLOW ? 'hidden md:block md:h-11 object-contain' : 'hidden md:block md:h-12 object-contain'}
-      />
+      {/* logo 2026 = len HLAVA, bez nápisu a bez bloku appky — Matej 24. 11. 2026 (staré zlaté logo a silueta odstránené 25. 11.) */}
+      <img src={dogyptHead2026} alt="DOGYPT" className="h-10 object-contain md:hidden" />
+      <img src={dogyptHead2026} alt="DOGYPT" className="hidden md:block md:h-11 object-contain" />
     </>
   );
 

@@ -179,7 +179,7 @@ export function TripProfileCard({
             {effName || t('pack.profileCard.aDogyptian')}
           </div>
           {(member?.memberNumber ?? packNumber) != null && (
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkFaint }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkFaint }}>
               {t('pack.profileCard.dogyptianNumber', { n: member?.memberNumber ?? packNumber })}
             </div>
           )}

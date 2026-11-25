@@ -341,7 +341,7 @@ body.has-pack-nav {
   background: rgba(4, 16, 24, 0.96);
   border: 1px solid rgba(var(--ainubis-cyan-rgb), 0.35);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 8.5px;
   letter-spacing: 0.10em;
   text-transform: uppercase;
@@ -399,7 +399,7 @@ body.has-pack-nav {
   padding: 5px 12px;
   background: rgba(245, 199, 61, 0.08);
   border-bottom: 1px solid rgba(245, 199, 61, 0.22);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 8.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -491,7 +491,7 @@ body.has-pack-nav {
    pod menom; sticky prah v TSX visí práve na tomto riadku, lebo je to posledný
    kus identity v intre. */
 .ainubis-intro__role {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 9.5px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -671,7 +671,7 @@ body.has-pack-nav {
 
 .ainubis-typing {
   align-self: flex-start;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 11px;
   letter-spacing: 0.06em;
   color: rgba(var(--ainubis-cyan-rgb), 0.7);
@@ -769,7 +769,7 @@ body.has-pack-nav {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 9.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;

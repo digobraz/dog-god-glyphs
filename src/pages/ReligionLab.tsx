@@ -1852,7 +1852,7 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
           letter-spacing: 0.1em;
           margin-top: 0.5em;
         }
-        /* Micro-copy pod CTA — body font (Inter), zúžená na šírku tlačítka */
+        /* Micro-copy pod CTA — body font (Space Grotesk), zúžená na šírku tlačítka */
         .codex-microcopy {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 400;

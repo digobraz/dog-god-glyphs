@@ -427,7 +427,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
       >
         <span
           style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 10,
             letterSpacing: '0.14em',
             color: 'rgba(250,244,236,0.7)',
@@ -437,7 +437,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         </span>
         <span
           style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontFamily: "'Space Grotesk', sans-serif",
             fontSize: 10,
             letterSpacing: '0.14em',
             color: 'rgba(250,244,236,0.55)',
@@ -545,7 +545,7 @@ function ResultsGraph({
               </span>
               <span
                 style={{
-                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: 10,
                   color: 'rgba(250,244,236,0.78)',
                   marginLeft: 'auto',

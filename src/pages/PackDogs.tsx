@@ -1123,7 +1123,7 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
         // ho preč, bez rámiku bude pils"). Preto sa `borderStyle` vetví tiež.
         border: solid ? 'none' : `1px solid ${dashed ? 'rgba(179,130,45,0.6)' : T.border}`,
         borderStyle: solid ? 'none' : (dashed ? 'dashed' : 'solid'),
-        fontFamily: mono ? "'JetBrains Mono', ui-monospace, monospace" : FONT_UI,
+        fontFamily: mono ? "'Space Grotesk', sans-serif" : FONT_UI,
         fontWeight: 600,
         textTransform: solid ? 'none' : 'uppercase',
         lineHeight: solid ? 1.1 : 1.25,

@@ -16,7 +16,7 @@
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Space Grotesk', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Space Grotesk', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   height: 100dvh;
 }

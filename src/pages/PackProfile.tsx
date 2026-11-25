@@ -982,7 +982,7 @@ function WordLimitTextarea({
           right: 10,
           bottom: 8,
           pointerEvents: 'none',
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: "'Space Grotesk', sans-serif",
           fontSize: 10,
           color: over ? '#A04040' : T.inkFaint,
         }}
@@ -1058,7 +1058,7 @@ function IdentityVisibilityEye({
       >
         <EyeMark off={anyHidden} size={14} />
         {anyHidden && (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10 }}>
             {hiddenKeys.length}
           </span>
         )}

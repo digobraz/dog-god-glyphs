@@ -98,10 +98,10 @@ if ('serviceWorker' in navigator) {
 const FILM_PATHS = ["/", "/wall", "/hall", "/onepage", "/vision", "/religion", "/about", "/spiral", "/grid", "/betavision"];
 if (FILM_PATHS.includes(location.pathname)) startEarlyGridDogs(); // film = homepage (FLIP 7. 10. 2026)
 
-// Písma z Google Fonts sa zapínajú až teraz — viď komentár pri <link data-late-fonts> v index.html.
+// Zvyšok `link[data-late-fonts]` len pre prerenderované stránky (scripts/prerender.mjs); index.html už žiadne nemá.
 document.querySelectorAll<HTMLLinkElement>('link[data-late-fonts]').forEach((l) => { l.media = 'all'; });
 
-// Šat Papyrus 3D (`lib/papyrus3d.ts`): testovací kanál a natívna appka. Web na dogypt.com ho nedostane.
+// Šat Papyrus 3D (`lib/papyrus3d.ts`): od FLIPu 23. 11. 2026 je APP_NEW zapnuté, takže beží aj na webe dogypt.com (LT Museum + Fira na každej stránke).
 if (APP_NEW) zapniPapyrus3d();
 
 // Aktívny jazyk (SK/CS/…) sa dotiahne pred prvým renderom, aby neblikla angličtina.

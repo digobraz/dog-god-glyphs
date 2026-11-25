@@ -1,24 +1,10 @@
-/* Google Fonts moved to index.html <link rel="stylesheet"> (2026-07 perf pass) —
+/* Písma: žiadny Google Fonts ani fonts-v1.css, všetko rieši lib/papyrus3d.ts (LT Museum + Fira). Pôvodná poznámka (2026-07 perf pass) —
    an @import here was render-blocking (had to fetch+parse this whole CSS file
    before the browser could even discover the font stylesheet). Weights trimmed
    to what's actually used (Cinzel Decorative 400 was dead weight — every usage
    in the codebase is explicit 700/900). */
 
-@font-face {
-  font-family: 'Dogyptian';
-  src: url('/fonts/Dogyptian.woff2') format('woff2'),
-       url('/fonts/Dogyptian.woff') format('woff');
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Dogyptian';
-  src: url('/fonts/DogyptianBold.woff2') format('woff2'),
-       url('/fonts/DogyptianBold.woff') format('woff');
-  font-weight: 700;
-  font-display: swap;
-}
+/* @font-face Dogyptian zrušený 25. 11. 2026 (písmo už nikto nevolá; súbory public/fonts/Dogyptian* ostávajú). */
 
 @tailwind base;
 @tailwind components;

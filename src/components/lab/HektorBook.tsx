@@ -143,7 +143,7 @@ export const HEKTOR_BOOK_CSS = `
   content: ''; display: block; width: 160px; height: 14px; margin: 10px 0 12px;
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='14'><path d='M4 7l5-5 5 5-5 5z' fill='%23C99A3F'/><circle cx='22' cy='7' r='3' fill='%23A8432A'/><path d='M30 7l5-5 5 5-5 5z' fill='%2316307A'/></svg>") left / 40px 14px repeat-x;
 }
-.hb-txt { font: 400 22px/1.45 'Dogyptian', 'Space Grotesk', sans-serif; color: rgba(42, 26, 12, 0.88); margin: 0; }
+.hb-txt { font: 400 22px/1.45 'Cinzel', 'Space Grotesk', sans-serif; color: rgba(42, 26, 12, 0.88); margin: 0; }
 .hb-band {
   position: absolute; left: 24px; right: 24px; bottom: 18px; height: 40px; border-radius: 3px;
   display: flex; align-items: center; justify-content: space-around;
@@ -168,7 +168,7 @@ export const HEKTOR_BOOK_CSS = `
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2; white-space: nowrap;
   padding: 6px 14px; border-radius: 4px; background: #F1E2BF;
   box-shadow: 0 0 0 2px #C99A3F, 0 4px 10px rgba(0, 0, 0, 0.3);
-  font: 700 16px/1 'Dogyptian', serif; color: #A8432A;
+  font: 700 16px/1 'Cinzel', serif; color: #A8432A;
 }
 .hb-glyph {
   width: min(88%, 420px); margin-top: 28px; padding: 8px 10px; border-radius: 6px;
@@ -183,7 +183,7 @@ export const HEKTOR_BOOK_CSS = `
 }
 .hb-title p::first-letter { color: #A8432A; font-size: 1.3em; }
 .hb-title small {
-  margin-top: 18px; font: 400 22px/1.3 'Dogyptian', serif; color: #A8432A; letter-spacing: .04em;
+  margin-top: 18px; font: 400 22px/1.3 'Cinzel', serif; color: #A8432A; letter-spacing: .04em;
 }
 .hb-title::before, .hb-title::after {
   content: ''; flex-shrink: 0; width: 220px; height: 14px; margin: 22px 0;

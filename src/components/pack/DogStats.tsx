@@ -173,7 +173,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                 flex: '1 1 0',
                 minWidth: 0,
                 textAlign: 'center',
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 10,
                 color: T.inkFaint,
               }}

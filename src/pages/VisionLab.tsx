@@ -1651,7 +1651,7 @@ export default function VisionLab({ embedded = false, flow = false, onWatch, her
           box-decoration-break: clone;
           background: rgba(0, 0, 0, 0.62);
           color: #fff;
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
           font-weight: 600;
           font-size: clamp(0.78rem, 1.9vw, 1.02rem);
           line-height: 1.5;

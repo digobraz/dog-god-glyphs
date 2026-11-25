@@ -88,7 +88,7 @@ export function HeroglyphRevealScreen() {
               <motion.h1
                 className={`text-center font-bold tracking-[0.25em] uppercase text-primary text-xl md:text-2xl ${showVertical ? 'mb-2' : 'mb-4'}`}
                 style={{
-                  fontFamily: "'Dogyptian', serif",
+                  fontFamily: "'Cinzel', serif",
                   textShadow: '0 0 30px hsl(var(--gold) / 0.5)',
                 }}
                 layout

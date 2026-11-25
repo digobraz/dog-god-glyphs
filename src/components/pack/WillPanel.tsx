@@ -265,7 +265,7 @@ export function WillPanel({
             />
             <div
               style={{
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10,
+                fontFamily: "'Space Grotesk', sans-serif", fontSize: 10,
                 color: remaining < 100 ? T.alertRed : T.inkFaint, textAlign: 'right', marginTop: 4,
               }}
             >

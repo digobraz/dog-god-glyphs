@@ -1371,7 +1371,7 @@ export default function PackDogDetail() {
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={APP_NEW ? t('pack.dog.wallTitle') : t('pack.dog.wordOnWall')} inline />
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim }}>
+                  <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
                     {messageDraft.length}/{MESSAGE_MAX}
                   </span>
                 </div>
@@ -1695,7 +1695,7 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
                 flex: '1 1 0',
                 minWidth: 0,
                 textAlign: 'center',
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: 10,
                 color: T.inkFaint,
               }}
@@ -2190,7 +2190,7 @@ function getWalkLevels(t: ReturnType<typeof useT>): { h: number; label: string }
 const PRAYER_GRADIENT = 'var(--brand-gradient)';
 // Points pill — light text on the gradient row.
 const PTS_PILL: React.CSSProperties = {
-  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+  fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 10,
   fontWeight: 700,
   color: T.card,
@@ -3141,7 +3141,7 @@ function DownloadButton({
             {t('pack.dog.docCertificate')}
           </span>
         </span>
-        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
           {enabled ? 'PDF' : '…'}
           {APP_NEW ? <SysIcon name="stiahnut" size={20} /> : <Download className="h-4 w-4" />}
         </span>
@@ -3247,7 +3247,7 @@ function ErrorBox({ message }: { message: string }) {
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.ink }}>
         {t('pack.dog.errorLoading')}
       </p>
-      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim, marginTop: 6 }}>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim, marginTop: 6 }}>
         {message}
       </p>
     </div>

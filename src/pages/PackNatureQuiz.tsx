@@ -22,6 +22,7 @@
 // ODZNAKY (5 elementov + 5 základných + 4 zvláštne úlohy) EXISTUJÚ od 20. 8. 2026 —
 // cesty nesie pole `art` v `natureQuiz.ts`, obrázky sú v `public/images/nature/`.
 // Výsledok je JEDEN DOKUMENT NA PSA (`ResultDoc`), nie štyri karty pod sebou.
+import dogyptSeal from '@/assets/dogypt-seal.webp';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
@@ -1833,7 +1834,7 @@ function ResultDoc({ dog, r, b, tx }: {
             DOGYPT · {tx('pack.nature.doc.footTitle', 'WHO IS YOUR DOG')}<br />
             {tx(NATURE_ATTRIBUTION.i18n, NATURE_ATTRIBUTION.textEN)}
           </p>
-          <img className="nqd-seal" src="/images/nature/seal.png" alt="" aria-hidden loading="lazy" />
+          <img className="nqd-seal" src={dogyptSeal} alt="" aria-hidden loading="lazy" />
         </div>
 
       </div></div>

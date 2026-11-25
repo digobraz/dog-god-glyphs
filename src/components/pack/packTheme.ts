@@ -1295,7 +1295,7 @@ export const PF_FIELD_CSS = `
   box-shadow: 0 2px 10px rgba(201,154,63,0.28), inset 0 1px 2px rgba(122,90,42,0.10);
 }
 .pf-subsection-badge{
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 999px;

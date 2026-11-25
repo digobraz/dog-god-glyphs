@@ -1,4 +1,4 @@
-// PÍSMO ŠATU PAPYRUS 3D — len pod `APP_NEW` (Matej 9. 11. 2026, rozhodnutie 3), volá sa z `main.tsx`. Web ostáva na Cinzeli.
+// PÍSMO ŠATU PAPYRUS 3D — len pod `APP_NEW` (Matej 9. 11. 2026, rozhodnutie 3), volá sa z `main.tsx`. Od FLIPu 23. 11. 2026 je APP_NEW zapnuté, takže šat beží aj na webe dogypt.com (každá stránka).
 // Licencia LT Museum: SIL OFL 1.1 (overené v súbore písma), text ide s appkou v `public/fonts/LT-Museum-OFL.txt`.
 // Písmo: LT Museum Black namiesto Cinzelu aj Cinzel Decorative; rodiny ostávajú, stačí prekryť ich váhy.
 // Veľkosť: Matej: „celkovo by som nadpisy zväčšil aj na CTA aj výlety a podobne (okrem mien vo feede alebo
@@ -10,11 +10,11 @@ import { BEZ_KOPIROVANIA_CSS, zapniBezKopirovania } from '@/lib/bezKopirovania';
 import { FIRA_UI_FACES } from '@/lib/firaUi';
 
 // UI písmo: Fira Sans namiesto Space Grotesk (Matej 11. 11. 2026). Rodina ostáva menom,
-// faces sú vložené až po fonts-v1.css, takže prebijú Space Grotesk bez zásahu do FONT_UI.
+// faces sú vložené do <head> za štýly stránky, takže prebijú Space Grotesk bez zásahu do FONT_UI.
 // Čísla rovné a rovnako široké, aby štatistiky neskákali (Fira má tnum, LT Museum ho ignoruje).
 const FIRA_CISLA = '.papyrus3d body{font-variant-numeric:lining-nums tabular-nums}';
 
-const SUBOR = '/fonts/g/ltmuseum-black-test-v1.woff2';
+const SUBOR = '/fonts/museum-black.woff2'; // jeden zdroj s appWeb.css/NotFound/flowFullSkin (zhodné bajt po bajte s g/ltmuseum-black-test-v1, 25. 11. 2026)
 const VAHY = [400, 500, 600, 700, 800, 900];
 const ZVACSENIE = '116%'; // 12 → 14 · 14 → 16 · 16 → 18,5 · 20 → 23
 

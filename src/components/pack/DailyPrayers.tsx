@@ -386,7 +386,7 @@ function getWalkLevels(t: ReturnType<typeof useT>): { h: number; label: string }
 const PRAYER_GRADIENT = 'var(--brand-gradient)';
 // Points pill — light text on the gradient row.
 const PTS_PILL: React.CSSProperties = {
-  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+  fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 10,
   fontWeight: 700,
   color: T.card,
