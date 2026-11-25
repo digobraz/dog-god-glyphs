@@ -6586,4 +6586,5 @@ export const prt: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Ajudar cães em necessidade é uma visão com uma condição.",
   'pack.vizia.zbierky.name': "Angariações para cães",
   'pack.vizia.zbierky.text': "Uma operação cara? Partilha a história com milhares de pessoas no DOGYPT. Se cada um der só 1 euro, o tratamento torna-se de repente acessível e o pesadelo transforma-se numa bonita história de união com um cão que vai viver graças a nós.",
+  'ainubis.chat.v2.disclaimer': "O AINUBIS está em beta. Responde com base nos nossos pergaminhos (senso canino) e pode errar. Em caso de emergência de saúde, liga ao veterinário.",
 };

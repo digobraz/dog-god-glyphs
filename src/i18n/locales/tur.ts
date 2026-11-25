@@ -6419,4 +6419,5 @@ export const tur: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "İhtiyaç içindeki köpeklere yardım, şartı olan bir vizyondur.",
   'pack.vizia.zbierky.name': "Köpekler için bağış kampanyaları",
   'pack.vizia.zbierky.text': "Pahalı bir ameliyat mı? Hikâyeyi DOGYPT'teki binlerce kişiye gönder. Herkes sadece 1 euro verirse tedavi birden ulaşılabilir olur ve kâbus, bizim sayemizde yaşayacak bir köpekle kurduğumuz dayanışmanın güzel bir hikâyesine dönüşür.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS beta sürümünde. Tomarlarımızdan (köpek aklı) yanıt verir ve yanılabilir. Sağlıkla ilgili acil durumda veterineri ara.",
 };

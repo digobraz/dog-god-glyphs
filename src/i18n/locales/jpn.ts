@@ -6416,4 +6416,5 @@ export const jpn: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "困っている犬を助けることは、条件つきのビジョンです。",
   'pack.vizia.zbierky.name': "犬のための募金",
   'pack.vizia.zbierky.text': "高額な手術が必要？ DOGYPT の何千人もの仲間にその物語を届けて。一人がたった1ユーロ出すだけで、治療は急に手の届くものになり、悪夢は、私たちのおかげで生きていける犬とのつながりの美しい物語に変わります。",
+  'ainubis.chat.v2.disclaimer': "AINUBIS はベータ版です。私たちの巻物（犬の知恵）をもとに答えますが、間違うこともあります。健康上の緊急時は獣医に連絡してください。",
 };

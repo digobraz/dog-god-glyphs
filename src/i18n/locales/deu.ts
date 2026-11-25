@@ -6583,4 +6583,5 @@ export const deu: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Hunden in Not zu helfen ist eine Vision mit einer Bedingung.",
   'pack.vizia.zbierky.name': "Spendenaktionen für Hunde",
   'pack.vizia.zbierky.text': "Eine teure Operation? Schick die Geschichte an Tausende Menschen in DOGYPT. Wenn jeder nur 1 Euro gibt, wird die Behandlung plötzlich bezahlbar, und aus einem Albtraum wird eine schöne Geschichte unseres Zusammenhalts mit einem Hund, der dank uns leben wird.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS ist in der Beta. Er antwortet aus unseren Schriftrollen (Hundeverstand) und kann sich irren. Bei gesundheitlichen Notfällen ruf den Tierarzt.",
 };

@@ -6566,4 +6566,5 @@ export const pol: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Pomoc psom w potrzebie to wizja z warunkiem.",
   'pack.vizia.zbierky.name': "Zbiórki dla psów",
   'pack.vizia.zbierky.text': "Droga operacja? Wyślij historię do tysięcy ludzi w DOGYPCIE. Jeśli każdy da tylko 1 euro, leczenie nagle staje się dostępne, a koszmar zmienia się w piękną historię naszej wspólnoty z psem, który będzie żył dzięki nam.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS jest w wersji beta. Odpowiada na podstawie naszych zwojów (psi rozum) i może się mylić. W nagłym przypadku zdrowotnym zadzwoń do weterynarza.",
 };

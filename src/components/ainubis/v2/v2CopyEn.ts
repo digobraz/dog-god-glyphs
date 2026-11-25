@@ -65,7 +65,7 @@ export const V2_EN = {
   creditsOne: "credit",
   creditsFew: "credits",
   creditsMany: "credits",
-  disclaimer: "Do not rely on AI answers. What you can rely on is the knowledge in the scrolls. For your dog's health always see a vet.",
+  disclaimer: "AINUBIS is in beta. It answers from our scrolls (Dog Sense) and can be wrong. For health emergencies, call a vet.",
   disclaimerFree: "I answer through the cheapest model. Outside the scrolls I can be wrong. DOGYPT is paid by members, whoever supports it gets a stronger model and more credits.",
   disclaimerCta: "See the ranks",
   errGeneric: "Something went wrong on my side. Try again in a moment.",

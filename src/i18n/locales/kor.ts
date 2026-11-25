@@ -6419,4 +6419,5 @@ export const kor: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "어려움에 처한 강아지를 돕는 것은 조건이 있는 비전입니다.",
   'pack.vizia.zbierky.name': "강아지를 위한 모금",
   'pack.vizia.zbierky.text': "비싼 수술이 필요한가요? DOGYPT의 수천 명에게 이야기를 보내 주세요. 모두가 1유로씩만 내도 치료는 갑자기 감당할 수 있는 일이 되고, 악몽은 우리 덕분에 살아갈 강아지와 함께 쓴 아름다운 연대의 이야기로 바뀌어요.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS는 베타 버전입니다. 우리의 두루마리(개의 지혜)를 바탕으로 답하며 틀릴 수 있습니다. 건강 응급 상황에는 수의사에게 연락하세요.",
 };
