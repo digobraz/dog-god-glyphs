@@ -9239,7 +9239,7 @@ export const sk: Partial<Dict> = {
   'ainubis.chat.v2.creditsOne': "kredit",
   'ainubis.chat.v2.creditsFew': "kredity",
   'ainubis.chat.v2.creditsMany': "kreditov",
-  'ainubis.chat.v2.disclaimer': "AINUBIS je v beta verzii. Odpovedá zo zvitkov psieho rozumu a môže sa mýliť. Pri zdravotnej núdzi volaj veterinára.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS je v beta verzii. Odpovedá len zo našich zvitkov (psí rozum) a môže sa mýliť. Pri zdravotnej núdzi volaj veterinára.",
   'ainubis.chat.v2.disclaimerFree': "Odpovedám cez najlacnejší model. Mimo zvitkov sa môžem mýliť. DOGYPT platia členovia, kto ho podporí, dostane silnejší model a viac kreditov.",
   'ainubis.chat.v2.disclaimerCta': "Pozri hodnosti",
   'ainubis.chat.v2.errGeneric': "Niečo sa pokazilo u mňa. Skús to o chvíľu.",

@@ -9546,7 +9546,7 @@ export const en = {
   'ainubis.chat.v2.creditsOne': "credit",
   'ainubis.chat.v2.creditsFew': "credits",
   'ainubis.chat.v2.creditsMany': "credits",
-  'ainubis.chat.v2.disclaimer': "AINUBIS is in beta. It answers from our scrolls (Dog Sense) and can be wrong. For health emergencies, call a vet.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS is in beta. It answers only from our scrolls (Dog Sense) and can be wrong. For health emergencies, call a vet.",
   'ainubis.chat.v2.disclaimerFree': "I answer through the cheapest model. Outside the scrolls I can be wrong. DOGYPT is paid by members, whoever supports it gets a stronger model and more credits.",
   'ainubis.chat.v2.disclaimerCta': "See the ranks",
   'ainubis.chat.v2.errGeneric': "Something went wrong on my side. Try again in a moment.",

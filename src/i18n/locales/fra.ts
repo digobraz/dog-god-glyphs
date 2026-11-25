@@ -6583,5 +6583,5 @@ export const fra: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Aider les chiens en détresse est une vision sous condition.",
   'pack.vizia.zbierky.name': "Collectes pour les chiens",
   'pack.vizia.zbierky.text': "Une opération coûteuse ? Partage l'histoire avec des milliers de personnes dans DOGYPT. Si chacun donne juste 1 euro, le traitement devient soudain abordable et le cauchemar se change en une belle histoire de solidarité avec un chien qui vivra grâce à nous.",
-  'ainubis.chat.v2.disclaimer': "AINUBIS est en bêta. Il répond à partir de nos parchemins (sens canin) et peut se tromper. En cas d'urgence de santé, appelle un vétérinaire.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS est en bêta. Il répond uniquement à partir de nos parchemins (sens canin) et peut se tromper. En cas d'urgence de santé, appelle un vétérinaire.",
 };

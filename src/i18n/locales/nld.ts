@@ -6419,5 +6419,5 @@ export const nld: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Honden in nood helpen is een visie met een voorwaarde.",
   'pack.vizia.zbierky.name': "Inzamelacties voor honden",
   'pack.vizia.zbierky.text': "Een dure operatie? Stuur het verhaal naar duizenden mensen in DOGYPT. Als iedereen maar 1 euro geeft, wordt de behandeling ineens betaalbaar en verandert een nachtmerrie in een mooi verhaal over hoe we samen een hond helpen die dankzij ons blijft leven.",
-  'ainubis.chat.v2.disclaimer': "AINUBIS is in bèta. Hij antwoordt uit onze rollen (hondenverstand) en kan het mis hebben. Bel bij een gezondheidsnood de dierenarts.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS is in bèta. Hij antwoordt alleen uit onze rollen (hondenverstand) en kan het mis hebben. Bel bij een gezondheidsnood de dierenarts.",
 };

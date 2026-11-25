@@ -6416,5 +6416,5 @@ export const chn: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "帮助困境中的狗狗，是一个有条件的愿景。",
   'pack.vizia.zbierky.name': "为狗狗筹款",
   'pack.vizia.zbierky.text': "手术费用高昂？把故事发给 DOGYPT 里的成千上万人。如果每人只出 1 欧元，治疗一下子就负担得起了，噩梦也会变成一个美好的故事：我们一起守护一只因我们而活下来的狗狗。",
-  'ainubis.chat.v2.disclaimer': "AINUBIS 目前是测试版。它根据我们的卷轴（狗狗智慧）回答，可能会出错。遇到健康紧急情况，请联系兽医。",
+  'ainubis.chat.v2.disclaimer': "AINUBIS 目前是测试版。它只根据我们的卷轴（狗狗智慧）回答，可能会出错。遇到健康紧急情况，请联系兽医。",
 };

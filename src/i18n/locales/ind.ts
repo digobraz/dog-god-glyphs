@@ -6421,5 +6421,5 @@ export const ind: Partial<Dict> = {
   'pack.vizia.zbierky.dogma': "Menolong anjing yang membutuhkan adalah visi dengan syarat.",
   'pack.vizia.zbierky.name': "Penggalangan dana untuk anjing",
   'pack.vizia.zbierky.text': "महँगा ऑपरेशन? कहानी DOGYPT के हज़ारों लोगों तक पहुँचाओ। अगर हर कोई सिर्फ़ 1 यूरो दे, तो इलाज अचानक मुमकिन हो जाता है और बुरा सपना हमारी एकजुटता की एक खूबसूरत कहानी बन जाता है, एक ऐसे कुत्ते के साथ जो हमारी वजह से ज़िंदा रहेगा।",
-  'ainubis.chat.v2.disclaimer': "AINUBIS masih beta. Ia menjawab dari gulungan kami (akal anjing) dan bisa salah. Untuk keadaan darurat kesehatan, hubungi dokter hewan.",
+  'ainubis.chat.v2.disclaimer': "AINUBIS masih beta. Ia menjawab hanya dari gulungan kami (akal anjing) dan bisa salah. Untuk keadaan darurat kesehatan, hubungi dokter hewan.",
 };
