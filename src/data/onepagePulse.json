@@ -1,6 +1,6 @@
 {
- "hours": 335,
- "total": 2550,
+ "hours": 343,
+ "total": 2559,
  "since": "2026-08-14",
  "updated": "2026-11-25",
  "days": [
@@ -30,7 +30,7 @@
   },
   {
    "d": "2026-11-25",
-   "h": 51
+   "h": 59
   }
  ],
  "work": [
@@ -43,7 +43,7 @@
    "tag": "research",
    "name": "vault",
    "count": {
-    "scrolls": 345,
+    "scrolls": 348,
     "podcasts": 1380,
     "goal": 600
    }
