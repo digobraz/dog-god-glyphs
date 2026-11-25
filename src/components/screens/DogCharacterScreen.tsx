@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
@@ -361,7 +362,7 @@ export function DogCharacterScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogCharacter.back')}
+            <HandArrowLeft size={16} /> {t('heroglyph.flow.dogCharacter.back')}
           </button>
         </div>
       </div>

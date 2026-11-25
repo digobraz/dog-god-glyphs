@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Plus, X, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { HandPlus } from '@/components/pack/HandIcons';
 import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -526,7 +527,7 @@ export function PhotoScreen() {
                   </button>
                 </div>
               ) : (
-                <Plus className="h-5 w-5" style={{ color: 'hsl(var(--gold) / 0.5)' }} />
+                <HandPlus size={20} style={{ color: 'hsl(var(--gold) / 0.5)' }} />
               )}
             </div>
           );

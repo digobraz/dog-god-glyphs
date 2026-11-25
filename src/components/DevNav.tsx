@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { CHATA_NAHLAD } from '@/lib/chataNahlad';
 import { IS_APP } from '@/lib/isApp';
-import { List } from "lucide-react";
+import { BrandIcon } from "@/components/pack/BrandIcon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -130,7 +130,7 @@ export function DevNav() {
           className="flex items-center gap-1.5 rounded-md bg-black/70 px-2.5 py-1.5 text-xs font-mono text-white shadow-lg backdrop-blur hover:bg-black/85 focus:outline-none"
           aria-label="Dev navigation"
         >
-          <List className="h-3.5 w-3.5" />
+          <BrandIcon name="bars" size={14} tint="white" />
           Dev nav
         </DropdownMenuTrigger>
         <DropdownMenuContent

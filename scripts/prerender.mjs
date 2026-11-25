@@ -291,7 +291,13 @@ async function render(browser, page, base, fontsCss) {
 async function main() {
   const base = readFileSync(resolve(DIST, 'index.html'), 'utf8');
   if (!base.includes('<div id="root"></div>')) throw new Error('dist/index.html nemá <div id="root"></div>');
-  const fontsCss = readFileSync(resolve(DIST, 'fonts/g/fonts-v1.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
+  // Písmo = to isté, čo dá papyrus3d za behu (25. 11. 2026, audit písma): Cinzel/Decorative/LT Museum → museum-black,
+  // Space Grotesk → Fira (FIRA_UI_FACES z src/lib/firaUi.ts). Starý fonts-v1.css (Cinzel + Space Grotesk z Googlu) už nie.
+  const museum = ['Cinzel', 'Cinzel Decorative', 'LT Museum'].flatMap((r) => [400, 500, 600, 700, 800, 900]
+    .map((w) => `@font-face{font-family:'${r}';font-weight:${w};font-style:normal;font-display:swap;src:url(/fonts/museum-black.woff2) format('woff2')}`)).join('');
+  const fira = [...readFileSync(resolve(ROOT, 'src/lib/firaUi.ts'), 'utf8').matchAll(/"(@font-face\{[^"]+\})"/g)].map((m) => m[1]).join('');
+  if (!fira) throw new Error('firaUi.ts: nenašiel som @font-face pre Fira');
+  const fontsCss = museum + fira;
   await waitForServer();
   const browser = setriCloudinary(await chromium.launch());
   const t0 = Date.now();

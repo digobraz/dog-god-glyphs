@@ -6,7 +6,7 @@ import { canStepBack } from '@/lib/stepBack';
 import { pilgrimAuthorName } from '@/lib/pilgrimName';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { EyeOff, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -339,7 +339,7 @@ const EyeMark = ({ off, size, style }: { off: boolean; size: number; style?: Rea
       )}
     </span>
   )
-  : off ? <EyeOff className={size === 12 ? 'h-3 w-3' : 'h-3.5 w-3.5'} style={style} /> : <Eye className="h-3.5 w-3.5" style={style} />;
+  : off ? <EyeOff className={size === 12 ? 'h-3 w-3' : 'h-3.5 w-3.5'} style={style} /> : <BrandIcon name="eye" size={14} tint="dark" style={style} />;
 
 // Emoji z polí profilu, ku ktorým sada v appke má kresbu (pilulky tagov ostávajú emoji — rozhodnutie Mateja).
 const FACT_SYS: Record<string, string> = { '🎂': 'narodeniny', '📍': 'pin' };

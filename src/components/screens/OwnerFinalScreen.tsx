@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Info, X } from 'lucide-react';
+import { Info, X } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
@@ -169,7 +170,7 @@ export function OwnerFinalScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.ownerFinal.back')}
+            <HandArrowLeft size={16} /> {t('heroglyph.flow.ownerFinal.back')}
           </button>
         </div>
       </div>

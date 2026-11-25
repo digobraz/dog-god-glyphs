@@ -8,7 +8,7 @@
 // Logá sú zlaté na priehľadnom (#C9A247) → na papyruse držia, netreba variant.
 // ════════════════════════════════════════════════════════════════════════════
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import dogyptLogo from '@/assets/dogypt-logo-gold.webp';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.webp';
 import { useT } from '@/i18n/LanguageContext';
@@ -79,7 +79,7 @@ export function PageTopBarLab({
           aria-label={backLabel}
           className="absolute left-4 top-[15px] p-2 text-foreground/60 hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <HandArrowLeft size={20} />
         </button>
       )}
       {logo}

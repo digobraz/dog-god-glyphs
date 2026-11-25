@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { HandArrowLeftIcon as HandArrowLeft } from '@/components/pack/handArrowLeft';
 import dogyptHead2026 from '@/assets/dogypt-hlava-2026.webp';
 import { useT } from '@/i18n/LanguageContext';
@@ -95,9 +94,7 @@ export function PageTopBar({
           // obrazoviek pred touto"*). Ten istý krúžok nosí pokladňa (`.co-back`).
           style={brandBack ? { border: '1.5px solid rgba(120, 86, 26, 0.55)', color: '#3C2A0E' } : undefined}
         >
-          {brandBack
-            ? <HandArrowLeft size={20} />
-            : <ArrowLeft className="h-5 w-5" />}
+          <HandArrowLeft size={20} />
         </button>
       )}
       {logo}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -387,7 +387,7 @@ export function OwnerInfoScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.ownerInfo.back')}
+            <HandArrowLeft size={16} /> {t('heroglyph.flow.ownerInfo.back')}
           </button>
         </div>
       </div>

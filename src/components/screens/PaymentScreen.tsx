@@ -3,7 +3,7 @@ import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
@@ -14,7 +14,7 @@ import { SplitDetail } from '@/components/SplitDetail';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { getAttribution } from '@/lib/attribution';
-import { HandCheck } from '@/components/pack/HandIcons';
+import { HandArrowLeft, HandCheck, HandLock } from '@/components/pack/HandIcons';
 
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 
@@ -468,7 +468,7 @@ export function PaymentScreen() {
               >
                 {loading
                   ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
-                  : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t('payment.pay')}</span>
+                  : <span className="flex items-center gap-2"><HandLock size={16} /> {t('payment.pay')}</span>
                 }
               </Button>
 
@@ -493,7 +493,7 @@ export function PaymentScreen() {
               )}
 
               <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1 mt-2">
-                <Lock className="h-3 w-3" /> {t('payment.secured')}
+                <HandLock size={12} /> {t('payment.secured')}
               </p>
             </div>
 
@@ -650,7 +650,7 @@ export function PaymentScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> {t('payment.back')}
+            <HandArrowLeft size={16} /> {t('payment.back')}
           </button>
         </div>
       </div>

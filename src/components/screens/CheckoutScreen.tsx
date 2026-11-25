@@ -3,7 +3,7 @@ import { FLOW_FIRST_STEP } from '@/lib/flowMode';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { HandArrowLeft } from '@/components/pack/HandIcons';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
@@ -386,7 +386,7 @@ export function CheckoutScreen() {
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-3 w-3" /> {t('heroglyph.checkout.back')}
+            <HandArrowLeft size={12} /> {t('heroglyph.checkout.back')}
           </button>
         </div>
       </div>
