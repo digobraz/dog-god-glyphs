@@ -6417,4 +6417,10 @@ export const ara: Partial<Dict> = {
   'pack.vizia.zbierky.name': "حملات تبرّع للكلاب",
   'pack.vizia.zbierky.text': "عملية باهظة؟ أرسل القصة إلى آلاف الناس في DOGYPT. إن أعطى كل واحد يورو واحدًا فقط، يصبح العلاج فجأة في المتناول ويتحوّل الكابوس إلى قصة جميلة عن تكاتفنا مع كلب سيعيش بفضلنا.",
   'ainubis.chat.v2.disclaimer': "AINUBIS في نسخة تجريبية. يجيب فقط من مخطوطاتنا (حكمة الكلاب) وقد يخطئ. في الطوارئ الصحية اتصل بالطبيب البيطري.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "الحياة مع كلبك في {تطبيق واحد}",
+  'pack.zd.card.v.offline': "مغامرات بلا إنترنت، و{أوسمة} على الإنترنت",
+  'pack.zd.card.v.hovno': "كل خ*ء {يُحتسب.}",
+  'pack.zd.card.v.verime': "نؤمن {بالكلب}.",
+  'pack.zd.card.v.god': "المكان الذي يكون فيه {الكلب} إلهًا.",
 };

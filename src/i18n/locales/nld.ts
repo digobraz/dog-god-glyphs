@@ -6420,4 +6420,10 @@ export const nld: Partial<Dict> = {
   'pack.vizia.zbierky.name': "Inzamelacties voor honden",
   'pack.vizia.zbierky.text': "Een dure operatie? Stuur het verhaal naar duizenden mensen in DOGYPT. Als iedereen maar 1 euro geeft, wordt de behandeling ineens betaalbaar en verandert een nachtmerrie in een mooi verhaal over hoe we samen een hond helpen die dankzij ons blijft leven.",
   'ainubis.chat.v2.disclaimer': "AINUBIS is in bèta. Hij antwoordt alleen uit onze rollen (hondenverstand) en kan het mis hebben. Bel bij een gezondheidsnood de dierenarts.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "Het leven met je hond in {één app}",
+  'pack.zd.card.v.offline': "Offline avonturen, online {badges}",
+  'pack.zd.card.v.hovno': "Elk hoopje {TELT.}",
+  'pack.zd.card.v.verime': "Wij geloven in de {hond}.",
+  'pack.zd.card.v.god': "De plek waar de {hond} god is.",
 };

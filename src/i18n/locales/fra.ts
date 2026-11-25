@@ -6584,4 +6584,10 @@ export const fra: Partial<Dict> = {
   'pack.vizia.zbierky.name': "Collectes pour les chiens",
   'pack.vizia.zbierky.text': "Une opération coûteuse ? Partage l'histoire avec des milliers de personnes dans DOGYPT. Si chacun donne juste 1 euro, le traitement devient soudain abordable et le cauchemar se change en une belle histoire de solidarité avec un chien qui vivra grâce à nous.",
   'ainubis.chat.v2.disclaimer': "AINUBIS est en bêta. Il répond uniquement à partir de nos parchemins (sens canin) et peut se tromper. En cas d'urgence de santé, appelle un vétérinaire.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "La vie avec ton chien dans {une appli}",
+  'pack.zd.card.v.offline': "Aventures hors ligne, {badges} en ligne",
+  'pack.zd.card.v.hovno': "Chaque crotte {COMPTE.}",
+  'pack.zd.card.v.verime': "Nous croyons au {chien}.",
+  'pack.zd.card.v.god': "Le lieu où le {chien} est dieu.",
 };

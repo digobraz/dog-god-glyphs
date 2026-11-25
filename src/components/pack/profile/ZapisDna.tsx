@@ -23,7 +23,7 @@
 //    Text → `dog_events` diary.note, míľnik → diary.milestone, váha → health.weightKg (existujúci zápis váhy).
 //    Výlet sa NEŤUKÁ: odznak VÝLETY ide len zo zapísaného výletu (`trip_walked`), dlaždica vedie do „Zapíš výlet".
 // ⚠️ `supabase.rpc` volať VIAZANE (nie `const { rpc } = supabase`) a FileList z inputu skopírovať `Array.from` PRED await.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PackPopup } from '@/components/pack/PackPopup';
 import { useBackClose } from '@/components/pack/diary/useBackClose';
@@ -53,6 +53,11 @@ import { ZTILES, loadZapisDays, type ZTile } from './zapisDnaModel';
 import { moment, uder } from '@/lib/momenty';
 import { useMySeal } from './sealStore';
 import type { SealTier } from './dogSeal';
+import type { KartaDnaAct, KartaDnaDog } from './KartaDna';
+
+/** KARTA DŇA po zápise (Matej 25. 11. 2026: „po zápise ide obrazovka so sumárom… na zdieľanie“) — len appka; web zatvára ako doteraz. */
+const KARTA_DNA_ON = APP_NEW;
+const KartaDna = lazy(() => import('./KartaDna').then((m) => ({ default: m.KartaDna })));
 
 const T = PACK_THEME;
 const S = PACK_SPACE;
@@ -353,6 +358,11 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
   const [plans, setPlans] = useState<Array<{ slug: string; name: string; href: string }> | null>(null);
   const [busy, setBusy] = useState(false);
   const [ritual, setRitual] = useState<{ day: number } | null>(null);
+  const [card, setCard] = useState<{ dogs: KartaDnaDog[]; photos: string[]; text: string; acts: KartaDnaAct[] } | null>(null);
+  const [cardOn, setCardOn] = useState(false);
+  const cardDone = useRef<(() => void) | null>(null);
+  const cardOnRef = useRef(false);
+  cardOnRef.current = cardOn;
   const rowsRef = useRef<Row[]>([]);
   const sheetRef = useRef<HTMLDivElement>(null);
   const photoSeq = useRef(0);
@@ -363,7 +373,10 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
   closeRef.current = onClose;
   useFlowKeyboardFix();
   useKeyboardLift();
-  const popClose = useCallback(() => { if (!busyRef.current) closeRef.current(); }, []);
+  const popClose = useCallback(() => {
+    if (cardOnRef.current) { if (cardDone.current) cardDone.current(); else closeRef.current(); return; }
+    if (!busyRef.current) closeRef.current();
+  }, []);
   useBackClose(popClose);
 
   const load = useCallback(async () => {
@@ -533,8 +546,20 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
         const img = badgeImg(f.symbol, badgeTier(Math.max(0, i1), f.prahy.length));
         return [{ fam, emoji, before, after, lo, nx, hit: f.prahy.some((p) => before < p && after >= p), img, up: i0 >= 0 }];
       }).sort((a, b) => Number(b.hit) - Number(a.hit)).slice(0, 5);
+      // Karta dňa sa skladá už počas pečate (načíta meno, Služobníka, čísla psov), ukáže sa po nej.
+      if (KARTA_DNA_ON) setCard({
+        dogs: picked.map((g) => ({ id: g.id, name: g.name, photo: g.photo })),
+        photos: photos.map((x) => x.preview),
+        text: text.trim(),
+        acts: [
+          ...chosen.map((x) => ({ id: x.id, name: tx(`pack.zd.t.${x.id}`, x.name), n: eff(x) })),
+          ...(hasMile ? [{ id: 'milestone', name: tx('pack.zd.t.milestone', 'Milestone'), n: 1 }] : []),
+          ...(hasWeight ? [{ id: 'weight', name: tx('pack.zd.t.weight', 'Weight'), n: 1 }] : []),
+        ],
+      });
       await ritualRun(rowsRef.current);
       window.dispatchEvent(new CustomEvent('dogypt:zapis', { detail: { day } }));
+      if (KARTA_DNA_ON) { setCardOn(true); return; }
       closeRef.current();
     } catch {
       toast({ title: tx('pack.dog.toastCouldntLog', 'Could not save'), variant: 'destructive' });
@@ -750,6 +775,11 @@ export function ZapisDna({ onClose, pickDay: pickDayProp = false, den }: { onClo
             )}
           </>)}
         </div>
+        {card && (
+          <Suspense fallback={null}>
+            <KartaDna day={day} {...card} hidden={!cardOn} doneRef={cardDone} onDone={() => closeRef.current()} />
+          </Suspense>
+        )}
         {writing && (
           <div className="zd-wr" role="dialog" aria-label={tx('pack.zd.writerTitle', 'Chronicle')}
             onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setWriting(false); } }}>

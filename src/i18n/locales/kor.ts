@@ -6420,4 +6420,10 @@ export const kor: Partial<Dict> = {
   'pack.vizia.zbierky.name': "강아지를 위한 모금",
   'pack.vizia.zbierky.text': "비싼 수술이 필요한가요? DOGYPT의 수천 명에게 이야기를 보내 주세요. 모두가 1유로씩만 내도 치료는 갑자기 감당할 수 있는 일이 되고, 악몽은 우리 덕분에 살아갈 강아지와 함께 쓴 아름다운 연대의 이야기로 바뀌어요.",
   'ainubis.chat.v2.disclaimer': "AINUBIS는 베타 버전입니다. 우리의 두루마리(개의 지혜)에서만 답하며 틀릴 수 있습니다. 건강 응급 상황에는 수의사에게 연락하세요.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "반려견과의 삶을 {앱 하나}에",
+  'pack.zd.card.v.offline': "오프라인 모험, 온라인 {배지}",
+  'pack.zd.card.v.hovno': "똥 하나하나가 {다 점수.}",
+  'pack.zd.card.v.verime': "{개를} 믿는다.",
+  'pack.zd.card.v.god': "{개}가 신인 곳.",
 };

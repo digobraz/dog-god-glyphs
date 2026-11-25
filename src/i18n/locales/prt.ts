@@ -6587,4 +6587,10 @@ export const prt: Partial<Dict> = {
   'pack.vizia.zbierky.name': "Angariações para cães",
   'pack.vizia.zbierky.text': "Uma operação cara? Partilha a história com milhares de pessoas no DOGYPT. Se cada um der só 1 euro, o tratamento torna-se de repente acessível e o pesadelo transforma-se numa bonita história de união com um cão que vai viver graças a nós.",
   'ainubis.chat.v2.disclaimer': "O AINUBIS está em beta. Responde apenas com base nos nossos pergaminhos (senso canino) e pode errar. Em caso de emergência de saúde, liga ao veterinário.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "A vida com o teu cão numa {só app}",
+  'pack.zd.card.v.offline': "Aventuras offline, {medalhas} online",
+  'pack.zd.card.v.hovno': "Cada cocó {CONTA.}",
+  'pack.zd.card.v.verime': "Acreditamos no {cão}.",
+  'pack.zd.card.v.god': "O lugar onde o {cão} é deus.",
 };

@@ -6420,4 +6420,10 @@ export const tur: Partial<Dict> = {
   'pack.vizia.zbierky.name': "Köpekler için bağış kampanyaları",
   'pack.vizia.zbierky.text': "Pahalı bir ameliyat mı? Hikâyeyi DOGYPT'teki binlerce kişiye gönder. Herkes sadece 1 euro verirse tedavi birden ulaşılabilir olur ve kâbus, bizim sayemizde yaşayacak bir köpekle kurduğumuz dayanışmanın güzel bir hikâyesine dönüşür.",
   'ainubis.chat.v2.disclaimer': "AINUBIS beta sürümünde. Yalnızca tomarlarımızdan (köpek aklı) yanıt verir ve yanılabilir. Sağlıkla ilgili acil durumda veterineri ara.",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "Köpekle hayat {tek uygulamada}",
+  'pack.zd.card.v.offline': "Çevrimdışı maceralar, çevrimiçi {rozetler}",
+  'pack.zd.card.v.hovno': "Her kaka {SAYILIR.}",
+  'pack.zd.card.v.verime': "{Köpeğe} inanıyoruz.",
+  'pack.zd.card.v.god': "{Köpeğin} tanrı olduğu yer.",
 };

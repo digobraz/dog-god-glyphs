@@ -28,6 +28,8 @@ export const RANK_BADGE_ON = APP_NEW;
  * 8 obrázkov podľa rokov 0–3 · 4–8 · 9–13 · 14–18 · 19–23 · 24–29 · 30–39 · 40+. Súbory sú už
  * zoradené (servant-0 = drevo … servant-7 = svetlo; Matej 8. 11., `plany/nakresy/odznaky-stred-2026-11-08/final-sluzobnik.mjs`). */
 const S_FROM = [0, 4, 9, 14, 19, 24, 30, 40];
+/** Obrázok štítu Služobníka pre dokončené roky (null = UČEŇ = drevo). Karta dňa ho kreslí na canvas. */
+export const servantImg = (years: number | null) => `/icons/pack/rank/servant-${stepOf(S_FROM, Math.max(0, years ?? 0))}.webp`;
 /** Zväčšenie obrázka — jedno pre všetky stupne: štít a hovno sedia na spoločnom plátne, top tier je väčší už v obrázku. */
 const S_K = [1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7];
 /** Kde začína kapsula (násobok `--s`) — top tier má krídla, tie by zakryli číslo. */

@@ -6417,4 +6417,10 @@ export const jpn: Partial<Dict> = {
   'pack.vizia.zbierky.name': "犬のための募金",
   'pack.vizia.zbierky.text': "高額な手術が必要？ DOGYPT の何千人もの仲間にその物語を届けて。一人がたった1ユーロ出すだけで、治療は急に手の届くものになり、悪夢は、私たちのおかげで生きていける犬とのつながりの美しい物語に変わります。",
   'ainubis.chat.v2.disclaimer': "AINUBIS はベータ版です。私たちの巻物（犬の知恵）からのみ答えますが、間違うこともあります。健康上の緊急時は獣医に連絡してください。",
+  // KARTA DŇA (25. 11. 2026) — veta dole, zlaté slovo v {}; claim = pages/appWeb/claim.ts h1a·h1b·h1c
+  'pack.zd.card.v.jedna': "犬との暮らしを{ひとつのアプリ}で",
+  'pack.zd.card.v.offline': "オフラインで冒険、オンラインで{バッジ}",
+  'pack.zd.card.v.hovno': "うんち1個も{カウント。}",
+  'pack.zd.card.v.verime': "{犬を}信じる。",
+  'pack.zd.card.v.god': "{犬}が神である場所。",
 };
