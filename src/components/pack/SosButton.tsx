@@ -147,7 +147,8 @@ export function SosButton() {
               </button>
             )}
             {/* Čoskoro (Matej 20. 11.): útulky a adopcie, POD nimi zbierky = úplne posledné (poradie Matej 21. 11.). Názvy pracovné, celé až po flipe po brainstormingu. Ťuk = 2–3 riadky o tom, čo príde. */}
-            {[...SOON_ROWS].reverse().map((r) => (
+            {/* V appke preč (Matej 25. 11. 2026, pred App Review): kontrolór pozerá aj dovnútra, nedokončené funkcie = riziko 2.1/2.2. Web bez zmeny. */}
+            {!IS_APP && [...SOON_ROWS].reverse().map((r) => (
               <Fragment key={r.key}>
                 <button type="button" className={`sos-row soon ${r.key}`} style={{ ...PACK_BOX.row }} aria-expanded={soonOpen === r.key} onClick={() => setSoonOpen((o) => (o === r.key ? null : r.key))}>
                   <BrandIcon name={r.icon} size={APP_NEW ? 32 : 24} tint="gold" />
