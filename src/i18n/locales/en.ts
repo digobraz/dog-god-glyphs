@@ -3351,7 +3351,7 @@ export const en = {
   "pack.wizard.k1.vyplnit": "<b>DOG ID</b> is a detailed quiz about your dog. A vet will appreciate all this info, and so will I when you need advice tailored to you. Tap Fill in and let's begin.",
   "pack.wizard.k2.navFotka": "Tap your photo.",
   "pack.wizard.k2.navProfil": "Tap <b>PROFILE</b>.",
-  "pack.wizard.k2.levely": "Your levels in DOGYPT: <b>Servant</b> = years with your dog, <b>Pilgrim</b> = trips and kilometres, <b>Apprentice</b> = knowledge and scrolls.",
+  "pack.wizard.k2.levely": "Your levels in DOGYPT: <b>Servant</b> = years with your dog, <b>Pilgrim</b> = trips and kilometres, <b>Disciple</b> = knowledge and scrolls.",
   "pack.wizard.k2.bones": "<b>BONES</b> are the internal currency of DOGYPT. You earn them for every friend you bring. Later you can exchange them for merch, for example.",
   "pack.wizard.k2.pozvi": "<b>Invite</b> sends your link to friends. DOGYPT grows exactly this way, be part of our growth.",
   "pack.wizard.k2.upravit": "<b>Edit profile:</b> set your details here, how others see you, and the app settings.",
