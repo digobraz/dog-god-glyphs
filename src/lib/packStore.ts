@@ -955,8 +955,9 @@ export function hydratePackStore(): Promise<boolean> {
         (supabase as any).from('trip_walked').select('trip_slug,walked_at,acted_by,acted_name'),
         (supabase as any).from('trip_fav').select('trip_slug'),
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
-        (supabase as any).from('trip_votes').select('*'),
-        (supabase as any).from('trip_events').select('*').eq('host_id', uid),
+        // Len stĺpce, ktoré sa nižšie čítajú (lock spotreba.md: `select('*')` sa nezakladá).
+        (supabase as any).from('trip_votes').select('trip_slug,rating,difficulty,crowd,comment,when_ym,hazards,at'),
+        (supabase as any).from('trip_events').select('client_id,trip_slug,month,dates,travel,socialization,closed,created_at').eq('host_id', uid),
         // Len podpis riadkov, nie payload — plné výlety (423 KB, z toho trasa 263 KB) sa
         // stiahnu nižšie iba pri zmene. Egress Supabase Free 5. 11. 2026, viď TRIPS_SIG_KEY.
         (supabase as any).from('pack_trips').select('slug,status,author_id,reviewed_at'),

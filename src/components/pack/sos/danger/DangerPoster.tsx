@@ -134,7 +134,7 @@ export function DangerPoster({ data, format, onReady }: { data: PosterData; form
   const v = posterView(data);
   const place = data.place.trim() || s('pack.sos.danger.poster.place');
   const poison = data.kind === 'poison';
-  const photoSrc = v.photo ? withTransform(v.photo, 'q_auto:best,w_900,c_limit') : null;
+  const photoSrc = v.photo ? withTransform(v.photo, 'q_auto:best,w_1080,c_limit') : null; // šírka z rebríka SIZE_LADDER (lock spotreba.md)
   const photo = useBlobUrl(photoSrc);
   const [mapSettled, setMapSettled] = useState(false);
   const onMapSettled = useCallback(() => setMapSettled(true), []);

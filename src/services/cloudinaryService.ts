@@ -155,7 +155,7 @@ export const ladderBox = (w: number, h: number): [number, number] => {
 
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
-  `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;
+  `${BASE_URL}/c_fill,w_480,h_480,r_max,f_auto,q_auto/${publicId}`; // 400 → 480: šírka z rebríka SIZE_LADDER (lock spotreba.md)
 
 export const certPdfUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,r_max,f_auto,q_auto/${publicId}`;

@@ -301,7 +301,7 @@ function Rv({ as = 'div', d = 0, className = '', children }: { as?: 'div' | 'p' 
  *  s menom a číslom · prerušovaná cesta k 1M. Dáta = ten istý feed steny (`get-grid-dogs`), fotky ako náhľad 180 px. */
 type TrailDog = { n: number; name: string; u: string };
 const TRAIL_MID = 14;
-const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
+const cldThumb = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_240,h_240,q_auto,f_auto/');
 /* Dočasne bez použitia: blok Potrebujeme ťa ide do STORY (Matej 10. 11.). */
 function DogTrail({ goal }: { goal: string }) {
   const [ref, near] = useNear<HTMLDivElement>('400px');

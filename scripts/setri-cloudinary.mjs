@@ -47,3 +47,29 @@ export function setriCloudinary(ciel, { plne = process.env.PLNE_FOTO === '1' } =
   }
   return ciel;
 }
+
+// ── REST A EDGE ODPOVEDE, KTORÉ SA MEDZI POVRCHMI NEMENIA (25. 11. 2026, lock plany/locky/spotreba.md) ───────────
+// Meranie 25. 11.: `get-dog-messages` 2 454 z 3 028 volaní edge/24 h (LIVE) a zoznam `vault_scrolls` (~1 MB)
+// 1 428× za 24 h (DEV, check-popupy) — stráž ich ťahala na KAŽDOM povrchu a jazyku znova, lebo headless kontext
+// nemá localStorage kópiu appky. Odpoveď sa drží v pamäti procesu podľa URL + Authorization (iný člen = iná odpoveď)
+// najviac PAMAT_MS. Vracia true, keď požiadavku vybavila (z pamäte alebo ju práve uložila); `st` = počítadlá stráže.
+const PAMAT_REST = new Map();
+const PAMAT_MS = 20 * 60_000;
+const PAMATOVATELNY = /\/rest\/v1\/vault_scrolls\?|\/functions\/v1\/get-dog-messages(\?|$)|\/functions\/v1\/get-grid-dogs(\?|$)|\/functions\/v1\/get-pack-stats(\?|$)/;
+export function restZPamate(route, st) {
+  const r = route.request();
+  if (r.method() !== 'GET' || !PAMATOVATELNY.test(r.url())) return false;
+  const k = r.url() + '|' + (r.headers()['authorization'] || '');
+  const v = PAMAT_REST.get(k);
+  if (v && Date.now() - v.ts < PAMAT_MS) {
+    if (st) st.zPamate = (st.zPamate || 0) + 1;
+    route.fulfill({ status: v.status, headers: v.headers, body: v.body }).catch(() => {});
+    return true;
+  }
+  if (st) st.poslane++;
+  route.fetch().then((res) => res.body().then((body) => {
+    if (res.ok()) PAMAT_REST.set(k, { ts: Date.now(), status: res.status(), headers: res.headers(), body });
+    return route.fulfill({ response: res, body });
+  })).catch(() => route.continue().catch(() => {}));
+  return true;
+}

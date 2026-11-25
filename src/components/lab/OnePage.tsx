@@ -1459,7 +1459,7 @@ const MID_POOL = 26;
  *  a tých fotiek je na obrazovke naraz dvadsaťosem. `g_auto` drží psa v strede
  *  výrezu, `f_auto` vyberie formát podľa prehliadača. */
 const cldThumb = (u: string) =>
-  u.replace('/upload/', '/upload/c_fill,g_auto,w_180,h_180,q_auto,f_auto/');
+  u.replace('/upload/', '/upload/c_fill,g_auto,w_240,h_240,q_auto,f_auto/');
 
 /** 🔴 TRI SKUTOČNÉ ALBY ZO STENY (`get-grid-dogs`, snímka 1. 9. 2026) —
  *  obraz tvrdí, že tri psy s tým istým menom majú tri rôzne glyfy; vymyslené
@@ -1481,8 +1481,9 @@ const ALBAS = [
     glyph: 'https://res.cloudinary.com/dz8lolmod/image/upload/v1786438287/heroglyphs/cs_live_b19NQNaAzwyfMcnLvVjUl3Fw9Mo4GCl44VcwRp9tgzLpAB1WYzgRtmAQWV.png' },
 ] as const;
 /** Fotka do štvorca 420 px — plná fotka z Cloudinary má často 2–4 MB. */
-const cldPhoto = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_420,h_420,q_auto,f_auto/');
-const cldGlyph = (u: string) => u.replace('/upload/', '/upload/c_fit,w_600,q_auto,f_auto/');
+// Šírky z rebríka SIZE_LADDER (lock spotreba.md): rovnaká cesta ako inde = jedna transformácia Cloudinary/CF, nie nová.
+const cldPhoto = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_480,h_480,q_auto,f_auto/');
+const cldGlyph = (u: string) => u.replace('/upload/', '/upload/c_fit,w_640,q_auto,f_auto/');
 
 /** Riadok „Same name. Different dog." pod trojicou — Matej 1. 9. 2026 ho
  *  nechal VYPNUTÝ (tri rovnaké mená nad tromi rôznymi psami to už povedali).

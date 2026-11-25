@@ -38,7 +38,7 @@
  * ⏱️ `--rychle` trvá desiatky minút (samotný objav na `/` ~12 min). V session ho púšťaj NA POZADÍ — popredie
  * ho po limite zabije a vyzerá to ako pád stráže („browser has been closed" v newCtx, 2.–15. 11. 2026).
  */
-import { setriCloudinary } from './setri-cloudinary.mjs';
+import { setriCloudinary, restZPamate } from './setri-cloudinary.mjs';
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -221,6 +221,10 @@ async function newCtx(browser, lang, w, h) {
   await ctx.route('**/*', (route) => {
     const u = route.request().url(), m = route.request().method();
     if (/posthog|stripe\.com|resend\.com|api\.cloudinary\.com|\/functions\/v1\//.test(u)) return route.abort();
+    // 25. 11. 2026 (lock plany/locky/spotreba.md): zoznam zvitkov VAULTU (~1 MB) ťahal každý povrch × jazyk znova —
+    // 1 428 × /rest/v1/vault_scrolls za 24 h na DEV = väčšina egressu Free kvóty (LIVE+DEV ju zdieľajú).
+    // Odpoveď sa drží v pamäti procesu (rovnaký používateľ = rovnaká odpoveď). Headless nemá localStorage kópiu appky.
+    if (restZPamate(route)) return;
     // 23. 11. 2026: popupy sú DOM — dlaždice mapy by pálili kredit Mapy.com (~60 k/mes, 3/4 spotreby).
     if (/api\.mapy\.com\/v1\/maptiles|\/mapyapi\/v1\/maptiles/.test(u)) return route.abort();
     // 17. 10. 2026: stroj bez .env.development (Pro) pustí DEV vite na LIVE Supabase — mock ID tam robili chyby v DB.

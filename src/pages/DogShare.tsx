@@ -232,7 +232,7 @@ export default function DogShare() {
   //   • `cardOg`   — og:image pre crawlerov; Facebook chce ≥ 1200 px, ale nie surový PNG
   // Pôvodnú veľkosť si ponecháva len stiahnutie karty (`downloadCard`), kde je celá
   // pointa v tom, že je veľká.
-  const cardImg = withTransform(ogImage, 'c_fit,w_780,f_auto,q_auto');
+  const cardImg = withTransform(ogImage, 'c_fit,w_800,f_auto,q_auto'); // šírka z rebríka SIZE_LADDER (lock spotreba.md)
   const cardOg = withTransform(ogImage, 'c_fit,w_1200,f_auto,q_auto');
   const seoTitle = status === 'found' ? `${dogName} — DOGYPT` : 'DOGYPT';
   const seoDescription =

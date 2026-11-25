@@ -21,8 +21,9 @@ const ALBAS = [
     photo: 'https://res.cloudinary.com/dz8lolmod/image/upload/v1786437529/tmp/6c423ceb-76fa-408d-9fd8-420fcff1d66b/main_crop.png',
     glyph: 'https://res.cloudinary.com/dz8lolmod/image/upload/v1786438287/heroglyphs/cs_live_b19NQNaAzwyfMcnLvVjUl3Fw9Mo4GCl44VcwRp9tgzLpAB1WYzgRtmAQWV.png' },
 ] as const;
-const cldPhoto = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_420,h_420,q_auto,f_auto/');
-const cldGlyph = (u: string) => u.replace('/upload/', '/upload/c_fit,w_600,q_auto,f_auto/');
+// Šírky z rebríka SIZE_LADDER (lock spotreba.md): rovnaká cesta ako inde = jedna transformácia Cloudinary/CF, nie nová.
+const cldPhoto = (u: string) => u.replace('/upload/', '/upload/c_fill,g_auto,w_480,h_480,q_auto,f_auto/');
+const cldGlyph = (u: string) => u.replace('/upload/', '/upload/c_fit,w_640,q_auto,f_auto/');
 
 /* sloty vodorovného rámu (viewBox 800 1100 13100 3500) = PC; zvislého (781 329.5 917.9 2844.8) = mobil; g = skupina.
  *  Matej 7. 11.: „urob horizontálne jak máme na starom webe, toto [zvislé s bodkami] som chcel len na mobile“. */

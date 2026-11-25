@@ -62,6 +62,9 @@ export interface BuddySettings {
   show_passed: boolean;
 }
 
+/** Stĺpce `assnif_settings`, ktoré UI číta — `select('*')` sa nezakladá (lock plany/locky/spotreba.md). */
+const BUDDY_COLS = 'enabled,show_to_genders,age_min,age_max,radius_km,dog_compat_only,paused_until,notify_match,notify_mail,show_nearby,ghost,show_to_packs,show_passed';
+
 export const DEFAULT_BUDDY_SETTINGS: BuddySettings = {
   enabled: false,
   show_to_genders: [],
@@ -131,7 +134,7 @@ export function buddyGateMissing(input: {
 export async function loadBuddySettings(): Promise<BuddySettings> {
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return DEFAULT_BUDDY_SETTINGS;
-  const { data } = await db.from('assnif_settings').select('*').eq('user_id', u.user.id).maybeSingle();
+  const { data } = await db.from('assnif_settings').select(BUDDY_COLS).eq('user_id', u.user.id).maybeSingle();
   return data ? { ...DEFAULT_BUDDY_SETTINGS, ...(data as Partial<BuddySettings>) } : DEFAULT_BUDDY_SETTINGS;
 }
 

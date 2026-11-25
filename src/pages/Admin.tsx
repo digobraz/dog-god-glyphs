@@ -238,7 +238,12 @@ export default function Admin() {
         // len `pack_members`, celý /pack ide cez `as any` (viď packStore.ts)
         (supabase as any).from('pack_reports').select('*').order('created_at', { ascending: false }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- viď vyššie
-        (supabase as any).from('pack_trips').select('*').order('created_at', { ascending: false }),
+        // Bez celého `payload` (trasa ~260 KB na výlet): tabuľka číta len meno, región, fotky a polia úplnosti
+        // (lock plany/locky/spotreba.md — `select('*')` na tabuľke s payloadom sa nezakladá).
+        (supabase as any).from('pack_trips').select(
+          'id,created_at,slug,author_id,status,km,country,p_name:payload->>name,p_region:payload->>region,p_photos:payload->photos,'
+          + 'p_acts:payload->acts,p_diff:payload->>diff,p_surface:payload->surface,p_crowd:payload->>crowd,p_tags:payload->tags,p_stars:payload->stars',
+        ).order('created_at', { ascending: false }),
       ]);
       if (cancelled) return;
       const err = d.error || c.error || p.error || v.error;
@@ -250,7 +255,12 @@ export default function Admin() {
       // Nahlásenia sa načítavajú zvlášť a ticho: keď migrácia ešte nie je na tomto
       // projekte, nesmie to zhodiť celý admin (ostatné tabuľky s tým nemajú nič spoločné).
       setReports((r.data as PackReport[]) ?? []);
-      setMemberTrips((mt.data as PackTripRow[]) ?? []);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- aliasy p_* z dotazu vyššie späť do tvaru `payload`
+      setMemberTrips(((mt.data as any[]) ?? []).map(({ p_name, p_region, p_photos, p_acts, p_diff, p_surface, p_crowd, p_tags, p_stars, ...r }) => ({
+        ...r,
+        payload: { name: p_name ?? undefined, region: p_region ?? undefined, photos: p_photos ?? undefined, acts: p_acts ?? undefined,
+          diff: p_diff ?? undefined, surface: p_surface ?? undefined, crowd: p_crowd ?? undefined, tags: p_tags ?? undefined, stars: p_stars ?? undefined },
+      })) as PackTripRow[]);
       setLoadingData(false);
     })();
     return () => { cancelled = true; };

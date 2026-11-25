@@ -135,6 +135,22 @@ const fetchList = () => db.from('vault_scrolls').select(LIST_COLS).order('world'
 async function refreshStoredList(st: StoredList) {
   const { data, count, error } = await db.from('vault_scrolls').select('updated_at', { count: 'exact' }).order('updated_at', { ascending: false }).limit(1);
   if (error || !data?.length || (data[0].updated_at === st.at && count === st.n)) return;
+  // DELTA CEZ `updated_at` (25. 11. 2026, lock plany/locky/spotreba.md): rovnaký počet zvitkov = zmenili sa
+  // len niektoré → stiahnu sa IBA tie (`gt updated_at`) a prepíšu sa v kópii. Celý zoznam (~1 MB JSON) ide
+  // znova len keď sa počet zmenil (pribudol/zmizol zvitok). Supabase egress Free 5 GB/mes bol 24. 11.
+  // na 149 % a zoznam zvitkov bol najväčší jednotlivý dotaz (hliadka peniaze.mjs).
+  if (count === st.n && st.at) {
+    const delta = await db.from('vault_scrolls').select(LIST_COLS).gt('updated_at', st.at).order('updated_at', { ascending: false });
+    if (!delta.error) {
+      if (!delta.data?.length) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const zmenene = new Map<string, any>(delta.data.map((r: any) => [r.id as string, r]));
+      const list = st.list.map((s) => (zmenene.has(s.id) ? fromListRow(zmenene.get(s.id)) : s));
+      cache = list;
+      writeStoredList(st.uid, delta.data, list);
+      return;
+    }
+  }
   const fresh = await fetchList();
   if (fresh.error || !fresh.data?.length) return;
   cache = fresh.data.map(fromListRow);
@@ -383,7 +399,7 @@ function startReads() {
       badgesReady = true; void awardBadges();
       return;
     }
-    const { data: rows } = await db.from('vault_reads').select('*');
+    const { data: rows } = await db.from('vault_reads').select('scroll_id,seen_at,read_at,listened_at,listen_sec,listen_langs,liked,saved,updated_at');
     reads = Object.fromEntries(((rows || []) as ReadRow[]).map((r) => [r.scroll_id, r]));
     readsReady = true;
     derive();
@@ -623,7 +639,7 @@ export function useMyRequests(): VaultRequest[] {
       if (!data.session) {
         try { myReq = JSON.parse(localStorage.getItem(RKEY) || '[]'); } catch { myReq = []; }
       } else {
-        const { data: rows } = await db.from('vault_requests').select('*').order('created_at', { ascending: false });
+        const { data: rows } = await db.from('vault_requests').select('id,scroll_id,kind,lang,body,status,created_at').order('created_at', { ascending: false });
         myReq = (rows || []) as VaultRequest[];
       }
       reqSubs.forEach((f) => f());
