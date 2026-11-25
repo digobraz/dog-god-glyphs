@@ -7,18 +7,25 @@
 // Kým nedorazí, alebo keď preklad chýba, ukáže sa originál.
 import { useEffect, useState } from 'react';
 import { useLang } from '@/i18n/LanguageContext';
-import { LIVE_EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, LIVE_EDGE_BASE } from '@/lib/env';
 
 const cache = new Map<string, Record<string, string>>();
 const loading = new Map<string, Promise<Record<string, string>>>();
+
+// 25. 11. 2026 (lock spotreba.md): ostrá prevádzka číta preklady z okraja Cloudflare (`/api/dog-messages`,
+// worker.js, 5 min + SWR) — `get-dog-messages` bol 81 % všetkých edge volaní. Priamo ide len DEV a záloha,
+// keď Worker neodpovie (rovnaký vzor ako `/api/stats` v sharedFetch.ts).
+const VIA_WORKER = !import.meta.env.DEV && EDGE_BASE === LIVE_EDGE_BASE;
+const priamo = (lang: string) => fetch(`${EDGE_BASE}/get-dog-messages?lang=${encodeURIComponent(lang)}`).then((r) => (r.ok ? r.json() : {}));
 
 function load(lang: string): Promise<Record<string, string>> {
   const hit = cache.get(lang);
   if (hit) return Promise.resolve(hit);
   let p = loading.get(lang);
   if (!p) {
-    p = fetch(`${LIVE_EDGE_BASE}/get-dog-messages?lang=${encodeURIComponent(lang)}`)
-      .then((r) => (r.ok ? r.json() : {}))
+    p = (VIA_WORKER
+      ? fetch(`https://dogypt.com/api/dog-messages?lang=${encodeURIComponent(lang)}`).then((r) => (r.ok ? r.json() : Promise.reject(r.status))).catch(() => priamo(lang))
+      : priamo(lang))
       .catch(() => ({}))
       .then((m: Record<string, string>) => { cache.set(lang, m ?? {}); return m ?? {}; });
     loading.set(lang, p);

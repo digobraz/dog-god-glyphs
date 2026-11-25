@@ -7,6 +7,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { decodeRenderData } from '@/lib/renderData';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { sizedUrl } from '@/services/cloudinaryService';
 
 /**
  * Headless render target for server-side PDF generation (Cloudflare Browser
@@ -254,7 +255,8 @@ export default function CertRender() {
       <CertificateCard
         dogName={dogName}
         ownerName={ownerName}
-        photoUrl={dog.cloudinary_main_url || undefined}
+        // Fotka v kruhu 264 px (×2 DPR pri tlači) — originál 1200² (~1 MB) robil z certifikátu 1,4 MB PDF; 800 px stačí (lock spotreba.md).
+        photoUrl={sizedUrl(dog.cloudinary_main_url, 800) || undefined}
         heroglyphCode={heroglyphCode}
         certNumber={certNumber}
         issuedDate={issuedDate}
