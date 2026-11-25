@@ -226,7 +226,7 @@ export const CREATE_OBJECTS: readonly CreateObject[] = [
     //    pred sebou, lock je doplnený. Nevzniká objekt, len vchod: routa, nie handler.
     id: 'sniffer',
     labelKey: APP_NEW ? 'pack.addTrip.entry.kind.sniffer.titleApp' : 'pack.addTrip.entry.kind.sniffer.title',
-    labelFallback: APP_NEW ? 'Sniff out a buddy' : 'Open SNIFFER',
+    labelFallback: APP_NEW ? 'Open sniffer' : 'Open SNIFFER',
     icon: { kind: 'panel' },
     place: 'VON',
     needs: 'pes',

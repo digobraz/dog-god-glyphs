@@ -5165,7 +5165,7 @@ export const esp: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> Funciones útiles que pueden salvar una vida si tu perro está en peligro. Confiamos en que nunca tengas que usarlas, ¡pero más vale estar preparado!",
   "pack.wizard.k4.navTuk": "Toca <b>MAPA</b>.",
   "pack.wizard.k5.labkaTuk": "Toca la <b>patita</b>.",
-  "pack.wizard.k5.panelTuk": "Toca <b>Olfatea un compañero</b>.",
+  "pack.wizard.k5.panelTuk": "Toca <b>Sniffer</b>.",
   "pack.wizard.k6.navTuk": "Toca <b>AINUBIS</b>.",
   "pack.wizard.k.znalecCiel": "Desbloquea todas las cámaras.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

@@ -5001,7 +5001,7 @@ export const nld: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> Handige functies die een leven kunnen redden als je hond in gevaar is. We hopen dat je ze nooit nodig hebt, maar voorbereid zijn is beter!",
   "pack.wizard.k4.navTuk": "Tik op <b>KAART</b>.",
   "pack.wizard.k5.labkaTuk": "Tik op de <b>poot</b>.",
-  "pack.wizard.k5.panelTuk": "Tik op <b>Snuffel een maatje op</b>.",
+  "pack.wizard.k5.panelTuk": "Tik op <b>Sniffer</b>.",
   "pack.wizard.k6.navTuk": "Tik op <b>AINUBIS</b>.",
   "pack.wizard.k.znalecCiel": "Ontgrendel alle kamers.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

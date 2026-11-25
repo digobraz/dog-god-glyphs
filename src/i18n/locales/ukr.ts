@@ -5164,7 +5164,7 @@ export const ukr: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> Корисні функції, які можуть врятувати життя, якщо твій пес у небезпеці. Віримо, що вони тобі ніколи не знадобляться, але краще бути готовим!",
   "pack.wizard.k4.navTuk": "Торкнися <b>МАПИ</b>.",
   "pack.wizard.k5.labkaTuk": "Торкнися <b>лапки</b>.",
-  "pack.wizard.k5.panelTuk": "Торкнися <b>Винюхай друга</b>.",
+  "pack.wizard.k5.panelTuk": "Торкнися <b>Sniffer</b>.",
   "pack.wizard.k6.navTuk": "Торкнися <b>AINUBIS</b>.",
   "pack.wizard.k.znalecCiel": "Відімкни всі покої.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

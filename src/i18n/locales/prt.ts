@@ -5168,7 +5168,7 @@ export const prt: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> Funções úteis que podem salvar uma vida se o seu cão estiver em perigo. Acreditamos que você nunca vai precisar delas, mas é melhor estar preparado!",
   "pack.wizard.k4.navTuk": "Toque em <b>MAPA</b>.",
   "pack.wizard.k5.labkaTuk": "Toque na <b>pata</b>.",
-  "pack.wizard.k5.panelTuk": "Toque em <b>Fareje um parceiro</b>.",
+  "pack.wizard.k5.panelTuk": "Toque em <b>Sniffer</b>.",
   "pack.wizard.k6.navTuk": "Toque em <b>AINUBIS</b>.",
   "pack.wizard.k.znalecCiel": "Desbloqueie todas as câmaras.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

@@ -4994,7 +4994,7 @@ export const ind: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> काम के फ़ीचर जो जान बचा सकते हैं, अगर तुम्हारा कुत्ता ख़तरे में हो। हमें यक़ीन है कि तुम्हें इनकी कभी ज़रूरत नहीं पड़ेगी, पर तैयार रहना बेहतर है!",
   "pack.wizard.k4.navTuk": "<b>नक्शे</b> पर टैप करो।",
   "pack.wizard.k5.labkaTuk": "<b>पंजे</b> पर टैप करो।",
-  "pack.wizard.k5.panelTuk": "<b>साथी सूँघकर ढूँढो</b> पर टैप करो।",
+  "pack.wizard.k5.panelTuk": "<b>Sniffer</b> पर टैप करो।",
   "pack.wizard.k6.navTuk": "<b>AINUBIS</b> पर टैप करो।",
   "pack.wizard.k.znalecCiel": "सारे कक्ष खोलो।",
   "pack.wizard.k.uci.uvod.feed": "FEED",

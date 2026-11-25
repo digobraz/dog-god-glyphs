@@ -4990,7 +4990,7 @@ export const chn: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS。</b>当你的狗狗遇到危险时，这些实用功能可以救命。相信你永远用不上，但有备无患！",
   "pack.wizard.k4.navTuk": "点一下<b>地图</b>。",
   "pack.wizard.k5.labkaTuk": "点一下<b>爪子</b>。",
-  "pack.wizard.k5.panelTuk": "点一下<b>嗅出伙伴</b>。",
+  "pack.wizard.k5.panelTuk": "点一下<b>Sniffer</b>。",
   "pack.wizard.k6.navTuk": "点一下<b>AINUBIS</b>。",
   "pack.wizard.k.znalecCiel": "解锁所有殿室。",
   "pack.wizard.k.uci.uvod.feed": "FEED",

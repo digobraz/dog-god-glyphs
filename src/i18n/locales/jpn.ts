@@ -4990,7 +4990,7 @@ export const jpn: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS。</b>愛犬が危ないとき、命を救えるかもしれない便利な機能。使う日が来ないことを願っているけど、備えあれば憂いなし！",
   "pack.wizard.k4.navTuk": "<b>マップ</b>をタップしてね。",
   "pack.wizard.k5.labkaTuk": "<b>肉球</b>をタップしてね。",
-  "pack.wizard.k5.panelTuk": "<b>相棒をクンクン探す</b>をタップしてね。",
+  "pack.wizard.k5.panelTuk": "<b>Sniffer</b>をタップしてね。",
   "pack.wizard.k6.navTuk": "<b>AINUBIS</b>をタップしてね。",
   "pack.wizard.k.znalecCiel": "すべての部屋のロックを解除しよう。",
   "pack.wizard.k.uci.uvod.feed": "FEED",

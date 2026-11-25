@@ -4990,7 +4990,7 @@ export const ara: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> وظائف مفيدة يمكنها إنقاذ حياة إذا كان كلبك في خطر. نأمل ألا تحتاج إليها أبدًا، لكن الاستعداد أفضل!",
   "pack.wizard.k4.navTuk": "انقر على <b>الخريطة</b>.",
   "pack.wizard.k5.labkaTuk": "انقر على <b>المخلب</b>.",
-  "pack.wizard.k5.panelTuk": "انقر على <b>تشمّم رفيقًا</b>.",
+  "pack.wizard.k5.panelTuk": "انقر على <b>Sniffer</b>.",
   "pack.wizard.k6.navTuk": "انقر على <b>AINUBIS</b>.",
   "pack.wizard.k.znalecCiel": "افتح كل الحجرات.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

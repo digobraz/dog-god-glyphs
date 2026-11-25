@@ -5001,7 +5001,7 @@ export const tur: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> Köpeğin tehlikedeyse hayat kurtarabilecek faydalı işlevler. Bunları hiç kullanmak zorunda kalmayacağına inanıyoruz, ama hazırlıklı olmak daha iyi!",
   "pack.wizard.k4.navTuk": "<b>HARİTA</b>'ya dokun.",
   "pack.wizard.k5.labkaTuk": "<b>Patiye</b> dokun.",
-  "pack.wizard.k5.panelTuk": "<b>Yol arkadaşı kokla</b>'ya dokun.",
+  "pack.wizard.k5.panelTuk": "<b>Sniffer</b>'ya dokun.",
   "pack.wizard.k6.navTuk": "<b>AINUBIS</b>'e dokun.",
   "pack.wizard.k.znalecCiel": "Tüm odaların kilidini aç.",
   "pack.wizard.k.uci.uvod.feed": "FEED",

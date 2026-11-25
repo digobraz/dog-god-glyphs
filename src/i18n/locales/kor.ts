@@ -4993,7 +4993,7 @@ export const kor: Partial<Dict> = {
   "pack.wizard.k3.koleso": "<b>SOS.</b> 네 강아지가 위험할 때 생명을 구할 수 있는 유용한 기능들이야. 쓸 일이 절대 없길 바라지만, 준비해 두는 게 좋잖아!",
   "pack.wizard.k4.navTuk": "<b>지도</b>를 탭해 봐.",
   "pack.wizard.k5.labkaTuk": "<b>발바닥</b>을 탭해 봐.",
-  "pack.wizard.k5.panelTuk": "<b>짝꿍 킁킁 찾기</b>를 탭해 봐.",
+  "pack.wizard.k5.panelTuk": "<b>Sniffer</b>를 탭해 봐.",
   "pack.wizard.k6.navTuk": "<b>AINUBIS</b>를 탭해 봐.",
   "pack.wizard.k.znalecCiel": "모든 방을 열어 봐.",
   "pack.wizard.k.uci.uvod.feed": "FEED",
