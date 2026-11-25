@@ -78,7 +78,7 @@ interface GridDog {
   wall_tier?: string | null;
 }
 
-const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
+const DEFAULT_OG = 'https://dogypt.com/og-app-2026-11-en.jpg';
 
 type Status = 'loading' | 'found' | 'notfound';
 

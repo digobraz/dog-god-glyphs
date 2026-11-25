@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 const BASE = 'https://dogypt.com';
 // Značková social-share karta (1200×630, plné pozadie) — fallback pre všetky
 // link previews. Statický súbor v public/ → stabilná URL bez build-hashu.
-const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
+const DEFAULT_OG = 'https://dogypt.com/og-app-2026-11-en.jpg';
 
 type SeoProps = {
   title: string;
