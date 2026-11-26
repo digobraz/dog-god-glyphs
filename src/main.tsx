@@ -21,6 +21,8 @@ import "./lib/devSeedApply";
 import "./lib/devUsporneFoto";
 // Simulátor: prihlásenie bez mailu (scripts/appka/simulator.sh --login) — telo za `import.meta.env.DEV`.
 import "./lib/devSimLogin";
+// Simulátor: skicár — Matej kreslí, čo zmeniť; dev server odfotí do ~/AI/DOGYPT/.skice/.
+import "./lib/devSkicar";
 // Na LIVE idú fotky z Cloudinary cez cache Cloudflare (/cdn/*) — Free Cloudinary má 25 kreditov.
 import "./lib/cdnFoto";
 

@@ -76,6 +76,31 @@ export default defineConfig(({ mode }) => ({
         res.setHeader("Cache-Control", "no-store");
         res.end(body);
       });
+      // SKICÁR (26. 11. 2026): src/lib/devSkicar.ts pošle cestu + vetu, server odfotí simulátor
+      // aj s kresbou do ~/AI/DOGYPT/.skice/<čas>.png + .json (gitignored).
+      server.middlewares.use("/__skica", (req, res) => {
+        let raw = "";
+        req.on("data", (c) => (raw += c));
+        req.on("end", async () => {
+          try {
+            const { execFile } = await import("node:child_process");
+            const dir = path.resolve(__dirname, "../../.skice");
+            fs.mkdirSync(dir, { recursive: true });
+            const d = new Date(); const z = (n: number) => String(n).padStart(2, "0");
+            const stamp = `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}_${z(d.getHours())}-${z(d.getMinutes())}-${z(d.getSeconds())}`; // náš čas, nie UTC
+            const png = path.join(dir, `${stamp}.png`);
+            await new Promise<void>((ok, fail) =>
+              execFile("xcrun", ["simctl", "io", "booted", "screenshot", png], (e) => (e ? fail(e) : ok())));
+            const meta = { ...JSON.parse(raw || "{}"), cas: d.toLocaleString("sk-SK"), png };
+            fs.writeFileSync(path.join(dir, `${stamp}.json`), JSON.stringify(meta, null, 2));
+            res.statusCode = 200;
+            res.end(JSON.stringify({ ok: true }));
+          } catch (e) {
+            res.statusCode = 500;
+            res.end(JSON.stringify({ ok: false, chyba: String(e) }));
+          }
+        });
+      });
     },
   }, {
     // 🔴 APPKA SA SŤAHUJE AŽ PO LOGU OPONY (perf mobil 7. 10. 2026, Matej: „zrýchli ten mobil").
