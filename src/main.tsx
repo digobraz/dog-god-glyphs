@@ -19,6 +19,8 @@ import { startAppLinks } from "./lib/appLinks";
 import "./lib/devSeedApply";
 // Robot v DEVe (webdriver) dostane fotky z Cloudinary zmenšené — telo za `import.meta.env.DEV`.
 import "./lib/devUsporneFoto";
+// Simulátor: prihlásenie bez mailu (scripts/appka/simulator.sh --login) — telo za `import.meta.env.DEV`.
+import "./lib/devSimLogin";
 // Na LIVE idú fotky z Cloudinary cez cache Cloudflare (/cdn/*) — Free Cloudinary má 25 kreditov.
 import "./lib/cdnFoto";
 

@@ -63,6 +63,21 @@ export default defineConfig(({ mode }) => ({
   // 6. 10. 2026 (perf/hygiena): `public/vault-demo` (97 MB) je len DEV ukážka VAULTU
   // (vaultScrolls.ts — v produkcii ide zvitky z DB). Do `dist` ani na Cloudflare nepatrí.
   plugins: [i18nSplit(), gridSnapshot(), {
+    // SIMULÁTOR (26. 11. 2026): jednorazový DEV token pre src/lib/devSimLogin.ts. Súbor píše
+    // `scripts/appka/simulator.sh --login`, po prvom prečítaní sa maže. Len dev server.
+    name: "sim-login",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use("/__sim-login", (_req, res) => {
+        const f = "/tmp/dogypt-sim-login.json";
+        let body = "{}";
+        try { body = fs.readFileSync(f, "utf8"); fs.unlinkSync(f); } catch { /* nič nečaká */ }
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Cache-Control", "no-store");
+        res.end(body);
+      });
+    },
+  }, {
     // 🔴 APPKA SA SŤAHUJE AŽ PO LOGU OPONY (perf mobil 7. 10. 2026, Matej: „zrýchli ten mobil").
     // Vite dá `<script type="module" src=index-*.js>` do <head>, takže 900 kB JS štartovalo
     // pred oponou a PageSpeed (simulovaný 4G) ho zarátal do LCP. Tag sa nahradí funkciou
