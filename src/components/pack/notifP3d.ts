@@ -33,7 +33,7 @@ html.papyrus3d .ntf-pill--purple{--bg:linear-gradient(180deg,#9147D6,${T.tripPur
 html.papyrus3d .ntf-pill--news{--bg:linear-gradient(180deg,${AINUBIS.cyan},#0E8FA8);color:${P3D_INK};cursor:pointer;}
 html.papyrus3d .ntf-pill b,html.papyrus3d .ntf-pill--gold b,html.papyrus3d .ntf-pill--up b,html.papyrus3d .ntf-pill--lapis b{color:inherit;font-weight:600;}
 /* ZÁLOŽKY: pilulky, aktívna = zlatá plocha */
-html.papyrus3d .ntf-tabs{display:flex;gap:${S.sm}px;flex:0 0 auto;overflow-x:auto;margin:${S.sm}px 0 0;padding:${S.xs}px ${S.lg}px;scrollbar-width:none;}
+html.papyrus3d .ntf-tabs{display:flex;flex-wrap:wrap;gap:${S.sm}px;flex:0 0 auto;margin:${S.sm}px 0 0;padding:${S.xs}px ${S.lg}px;scrollbar-width:none;}
 html.papyrus3d .ntf-tabs::-webkit-scrollbar{display:none;}
 html.papyrus3d .ntf-tabs button{flex:none;height:32px;padding:0 ${S.md}px;border-radius:${PACK_R.pill}px;border:2px solid color-mix(in srgb,${LAPIS.ink} 45%,transparent);background:transparent;color:${LAPIS.ink};cursor:pointer;font-family:${FONT_UI};font-size:${PACK_TEXT.label}px;font-weight:600;white-space:nowrap;}
 html.papyrus3d .ntf-tabs button.on{background:${GOLD_HI};border-color:${GOLD_HI};color:${P3D_INK};}
