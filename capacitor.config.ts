@@ -16,11 +16,15 @@ const DEV = process.env.CAP_TARGET === 'dev';
 // `dist-apptest/` a aktualizácie z `appka-dogypt.dogypt.workers.dev`, nie z dogypt.com
 // (`scripts/appka/test.sh`). 🔴 Do obchodu ide len build BEZ tohto (vydaj.sh bez APPKA_WEB=test).
 const TEST = process.env.CAP_TARGET === 'test';
+// SIMULÁTOR NAŽIVO (26. 11. 2026): `CAP_LIVE_URL` = appka nečíta zabalený web, ale živý Vite dev server
+// na Macu (`scripts/appka/simulator.sh`) — zmena v kóde sa v simulátore prekreslí sama. Len pre DEV.
+const LIVE_URL = DEV ? process.env.CAP_LIVE_URL : undefined;
 
 const config: CapacitorConfig = {
   appId: 'com.dogypt.app',
   appName: 'DOGYPT',
   webDir: DEV ? 'dist-appdev' : TEST ? 'dist-apptest' : 'dist',
+  ...(LIVE_URL ? { server: { url: LIVE_URL, cleartext: true } } : {}),
   android: {
     // Mapa, fotky a Supabase idú cez https; zmiešaný obsah netreba.
     allowMixedContent: false,
