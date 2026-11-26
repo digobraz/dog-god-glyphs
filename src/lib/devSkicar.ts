@@ -27,9 +27,10 @@ if (import.meta.env.DEV && IS_APP) {
 
   const start = () => {
     const pen = el('button', {
-      position: 'fixed', right: '0', top: '45%', zIndex: '2147483646', width: '36px', height: '56px',
-      border: 'none', borderRadius: '12px 0 0 12px', background: RED, color: '#fff',
-      font: '700 11px system-ui', writingMode: 'vertical-rl', boxShadow: '0 2px 10px rgba(0,0,0,.3)', opacity: '.85',
+      // Pod spodným navom, v páse domovského indikátora — nezavadzia (Matej 26. 11.).
+      position: 'fixed', left: '50%', bottom: '2px', transform: 'translateX(-50%)', zIndex: '2147483646',
+      width: '64px', height: '18px', padding: '0', border: 'none', borderRadius: '999px', background: RED, color: '#fff',
+      font: '700 10px system-ui', letterSpacing: '.08em', boxShadow: '0 1px 6px rgba(0,0,0,.3)', opacity: '.85',
     }, 'SKICA');
     document.body.appendChild(pen);
 
