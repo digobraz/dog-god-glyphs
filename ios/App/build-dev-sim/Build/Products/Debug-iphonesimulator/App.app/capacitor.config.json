@@ -1,0 +1,35 @@
+{
+	"appId": "com.dogypt.app",
+	"appName": "DOGYPT",
+	"webDir": "dist-appdev",
+	"server": {
+		"url": "http://localhost:8090",
+		"cleartext": true
+	},
+	"android": {
+		"allowMixedContent": false
+	},
+	"plugins": {
+		"Keyboard": {
+			"resize": "none"
+		},
+		"CapacitorUpdater": {
+			"autoUpdate": false,
+			"updateUrl": "",
+			"statsUrl": "",
+			"channelUrl": "",
+			"appReadyTimeout": 10000,
+			"resetWhenUpdate": true
+		}
+	},
+	"packageClassList": [
+		"CAPBrowserPlugin",
+		"FilesystemPlugin",
+		"HapticsPlugin",
+		"KeyboardPlugin",
+		"PreferencesPlugin",
+		"PushNotificationsPlugin",
+		"SharePlugin",
+		"CapacitorUpdaterPlugin"
+	]
+}

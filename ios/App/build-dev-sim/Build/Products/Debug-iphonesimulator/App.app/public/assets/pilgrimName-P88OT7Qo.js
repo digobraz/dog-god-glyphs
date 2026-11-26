@@ -1,0 +1,1 @@
+function t(n,r){if(r&&r.trim())return r.trim().split(" ")[0];if(!n)return"Dogyptian";const i=(n.split("@")[0]||"").split("+")[0].replace(/[._-]/g," ").replace(/\d+/g,"").trim();return i?i.charAt(0).toUpperCase()+i.slice(1):"Dogyptian"}function p(n,r){const i=(r==null?void 0:r.full_name)||(r==null?void 0:r.name);return t(n??"",i)}export{t as f,p};

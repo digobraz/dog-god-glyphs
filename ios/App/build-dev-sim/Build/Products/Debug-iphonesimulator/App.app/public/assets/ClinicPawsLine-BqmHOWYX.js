@@ -1,0 +1,5 @@
+import{s as r,v as x,b as t,j as e,e as c}from"./index-DriUOdZL.js";import{aB as g}from"./MomentHost-D9oSu3w3.js";import{c as l}from"./clinics-uQjVTo0l.js";import{s as f}from"./clinicPosts-DEMr3P3j.js";const C=`
+.cpl{align-self:flex-start;display:inline-flex;align-items:center;flex-wrap:wrap;gap:${r.xs}px ${r.sm}px;font-size:${x.label}px;font-weight:600;line-height:1.35;color:${t.inkStrong};text-decoration:none;}
+.cpl i{font-style:normal;color:${t.inkWarm};}
+.cpl--ask{font-weight:500;color:${t.inkWarm};text-decoration:underline;}
+`;function P({cid:i,stat:p,s:a,loc:n}){const s=f(p);if(!s)return e.jsx(c,{className:"cpl cpl--ask",to:l(i),children:a("pack.sos.er.clBeenQ")});const o=new Intl.PluralRules(n).select(s.n),m=o==="one"?"pack.sos.er.clRateOne":o==="few"?"pack.sos.er.clRateFew":"pack.sos.er.clRateMany";return e.jsxs(c,{className:"cpl",to:l(i),children:[e.jsx("i",{children:a("pack.sos.er.clOurs")}),e.jsx(g,{stars:s.avg,size:12,gap:2}),s.avg.toLocaleString(n,{minimumFractionDigits:1,maximumFractionDigits:1}),e.jsxs("i",{children:["· ",a(m,{count:s.n.toLocaleString(n)})]})]})}export{C,P as a};

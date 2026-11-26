@@ -1,0 +1,26 @@
+moduledependenciestarget: \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/SDKSettings.json \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/Foundation-C9FUSLGGEOF7MNY0URTXSBHAD.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/usr/include/DarwinFoundation1.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreFoundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/UIUtilities-3UFW3NNYNQX3FKF6O4VA8859Y.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/SubFrameworks/UIUtilities.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/CoreGraphics-86FDM7USBPD2VG9EK9W5738LG.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreGraphics.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/CoreText-3F4LDU1G95JIEJYF1JOWXPSM8.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreText.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/CoreImage-F0YDW14TOT7Q215NNTKYUX1GB.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreImage.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/QuartzCore-A2JI8GO3LZXVOA20Y2VJS0ZEU.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/QuartzCore.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/CoreLocation-GSJ4653VEZEMCJYOVZWJET5T.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreLocation.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/CoreMotion-6VY1L2L5Z18HMG5UVMDBJU7S2.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/CoreMotion.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/Symbols-6V0LM7CKO11T4TQYDBNU13I2J.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/Symbols.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/FileProvider-263JGSCKATBMDXW22G294AQLD.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/FileProvider.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/UserNotifications-B36GA14J5IX2YAKQ2WBW8QBSQ.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/UserNotifications.framework/Modules/module.modulemap

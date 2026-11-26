@@ -1,0 +1,21 @@
+moduledependenciestarget: \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/SDKSettings.json \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/Capacitor.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/UIKit-1XWROZB7V6WFTY8OC9KTG3519.pcm \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/usr/include/DarwinFoundation2.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/usr/include/ObjectiveC.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/UIKit.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPPlugin.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/WebKit-D3K6NTYZ8HU8KSYY1C7VNU8ZN.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/WebKit.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPPluginCall.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPBridgedPlugin.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPPluginMethod.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPInstanceDescriptor.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/Cordova-DIKVKQKIHF6RDW84BZQH1BUZX.pcm \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/CAPInstanceConfiguration.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Capacitor.framework/Headers/Capacitor-Swift.h

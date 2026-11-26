@@ -1,0 +1,1 @@
+import{supabase as t}from"./client-_yx8AKEw.js";function e(){try{localStorage.setItem("dogypt_constitution_opened","1")}catch{}t.auth.updateUser({data:{constitution_opened:!0}}).catch(()=>{})}export{e as m};

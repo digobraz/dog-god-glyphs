@@ -1,0 +1,1 @@
+import{j as i}from"./index-DriUOdZL.js";import{T as s}from"./ThinArrow-DxkNjmlF.js";function a({size:r=16,className:o,style:t,title:e,solid:n}){return i.jsx(s,{dir:"left",size:r+8,className:o,style:t})}export{a as H};

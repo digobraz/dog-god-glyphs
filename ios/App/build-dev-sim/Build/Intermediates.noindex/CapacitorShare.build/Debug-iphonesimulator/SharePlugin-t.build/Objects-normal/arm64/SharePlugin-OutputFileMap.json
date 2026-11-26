@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin-primary.dia",
+    "emit-module-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin-primary-emit-module.dia",
+    "pch" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin-primary.swiftdeps"
+  },
+  "/Users/stachoman/AI/DOGYPT/vystupy/web/node_modules/@capacitor/share/ios/Sources/SharePlugin/SharePlugin.swift" : {
+    "const-values" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.swiftconstvalues",
+    "dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.d",
+    "diagnostics" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.dia",
+    "index-unit-output-path" : "/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.o",
+    "llvm-bc" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.bc",
+    "object" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.o",
+    "swift-dependencies" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin.swiftdeps",
+    "swiftmodule" : "/Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/CapacitorShare.build/Debug-iphonesimulator/SharePlugin-t.build/Objects-normal/arm64/SharePlugin~partial.swiftmodule"
+  }
+}

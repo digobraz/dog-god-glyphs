@@ -1,0 +1,1 @@
+import{a4 as e}from"./index-DriUOdZL.js";const t="dogypt.ecard.",c=(a,r)=>`${t}${a}.${r}`;function s(){try{Object.keys(localStorage).filter(a=>a.startsWith(t)).forEach(a=>localStorage.removeItem(a))}catch{}e(t)}export{c as a,s as c};

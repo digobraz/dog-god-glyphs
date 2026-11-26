@@ -1,0 +1,25 @@
+moduledependenciestarget: \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/SDKSettings.json \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CapacitorCordova.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/UIKit-1XWROZB7V6WFTY8OC9KTG3519.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/Foundation.framework/Modules/module.modulemap \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/UIKit.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/AppDelegate.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVViewController.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDV.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVAvailability.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVPlugin.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVPluginResult.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVCommandDelegate.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVInvokedUrlCommand.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Intermediates.noindex/ExplicitPrecompiledModules/WebKit-D3K6NTYZ8HU8KSYY1C7VNU8ZN.pcm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator27.2.sdk/System/Library/Frameworks/WebKit.framework/Modules/module.modulemap \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVURLProtocol.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVScreenOrientationDelegate.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVWebViewProcessPoolFactory.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVAvailabilityDeprecated.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVCommandDelegateImpl.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVPluginManager.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVConfigParser.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/CDVPlugin+Resources.h \
+  /Users/stachoman/AI/DOGYPT/vystupy/web/ios/App/build-dev-sim/Build/Products/Debug-iphonesimulator/Cordova.framework/Headers/NSDictionary+CordovaPreferences.h

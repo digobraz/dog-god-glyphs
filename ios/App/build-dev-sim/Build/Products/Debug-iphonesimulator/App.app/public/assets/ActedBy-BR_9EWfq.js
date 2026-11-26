@@ -1,0 +1,6 @@
+import{r as l,j as s,aQ as u,s as p,a1 as x,v as c}from"./index-DriUOdZL.js";import{supabase as h}from"./client-_yx8AKEw.js";import{sizedUrl as d}from"./cloudinaryService-CiRx-3N_.js";const m=new Map,g=h;function y(t){let r=m.get(t);return r||(r=Promise.resolve(g.rpc("actor_cards",{p_ids:[t]})).then(({data:n})=>{const e=Array.isArray(n)?n[0]:void 0;return e?{name:typeof e.name=="string"?e.name:"",photo:typeof e.photo=="string"?e.photo:null}:null}).catch(()=>null),m.set(t,r)),r}const b=`${u}
+.k4-by.pk-pill{gap:${p.xs}px;padding:2px ${p.sm}px 2px 2px;vertical-align:middle;
+  font-family:${x};font-weight:700;font-size:${c.label}px;line-height:1.4;} /* písmo: meno */
+.k4-by img,.k4-by i{width:18px;height:18px;border-radius:999px;object-fit:cover;flex:none;}
+.k4-by i{display:grid;place-items:center;font-style:normal;font-size:${c.micro}px;color:#FFFDF7;background:#7a5a2a;}
+`;function A({id:t,name:r,fallback:n="pawmate"}){const[e,o]=l.useState(null);if(l.useEffect(()=>{if(!t){o(null);return}let i=!0;return y(t).then(f=>{i&&o(f)}),()=>{i=!1}},[t]),!e&&!r)return null;const a=(e==null?void 0:e.name)||r||n;return s.jsxs(s.Fragment,{children:[s.jsx("style",{children:b}),s.jsxs("span",{className:"pk-pill k4-by",children:[e!=null&&e.photo?s.jsx("img",{src:d(e.photo,40),alt:""}):s.jsx("i",{children:a[0].toUpperCase()}),a]})]})}export{A};
