@@ -143,7 +143,6 @@ async function snapshot(browser, page, lang, base) {
     for (let a = pageEl.parentElement; a && a.id !== 'root'; a = a.parentElement) {
       const shell = a.cloneNode(false); shell.appendChild(node); node = shell;
     }
-    const root = { innerHTML: node.outerHTML };
     // Štýly, ktoré appka vložila do <head> (CSS v JS literáloch); tie z index.html tam už sú.
     // Globálne štýly appky (papyrus3d ~143 kB: /pack, mapa, dlaždice…) do snímky nepatria celé — HTML homepage by niesol ~20 kB gzip
     // navyše pred prvým vykreslením (PageSpeed mobil, 27. 11. 2026). Ostane pravidlo, ktorého selektor sedí na prvok snímky alebo
@@ -157,6 +156,14 @@ async function snapshot(browser, page, lang, base) {
       if (r.cssRules && (r.type === 4 || r.type === 12)) { const inner = keep(r.cssRules).join(''); return inner ? `@${r.type === 4 ? 'media' : 'supports'} ${r.conditionText || r.media?.mediaText} {${inner}}` : ''; }
       return r.cssText;
     });
+    // To isté pre <style> VNÚTRI stránky (DogShare si v JSX nesie FLOW_PALE_CSS ~50 kB celého heroflowu) —
+    // bez filtra ich HTML psa nieslo pred prvým vykreslením (ostrý web 27. 11. 2026: /dog mobil 83, render delay 1,6 s).
+    const liveIn = new Map([...pageEl.querySelectorAll('style')].map((s) => [s.textContent || '', s]));
+    node.querySelectorAll('style').forEach((c) => {
+      const s = liveIn.get(c.textContent || '');
+      if (!s?.sheet || (c.textContent || '').length < 4000) return;
+      try { c.textContent = keep(s.sheet.cssRules).join(''); } catch { /* nechaj celé */ }
+    });
     const styles = [...document.head.querySelectorAll('style')]
       .filter((s) => !base.includes(s.textContent || '\u0000'))
       .map((s) => {
@@ -167,7 +174,7 @@ async function snapshot(browser, page, lang, base) {
     // nenaštýlované a pri výmene skočí (homepage 23. 11.: CLS 0,5, LCP sa ráta až z appky).
     const links = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute('href') || '')
       .filter((h) => h.startsWith('/assets/') && !base.includes(h));
-    return { html: root.innerHTML, styles, links, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
+    return { html: node.outerHTML, styles, links, title: document.title, consent: document.querySelector('#root .consent-banner')?.outerHTML ?? '' };
   }, [base, page.page, page.prune || '']);
   await ctx.close();
   if (!out.html.trim()) throw new Error(`${page.path} [${lang}] je prázdna`);
@@ -198,7 +205,10 @@ pre.appendChild(document.getElementById('pre-css').content.cloneNode(true));
 // Veľké data: URI (prefarbený heroglyf) sú v šablónach len ako značka — ležia raz v #pre-data.
 var D=[];try{D=JSON.parse(document.getElementById('pre-data').textContent);}catch(e){}
 var h=tp.innerHTML.replace(/__PRE_D([0-9]+)__/g,function(m,i){return D[+i]||'';});
-${page.dog ? `var W=window.__dogPhotoW||${SNAP_PHOTO_W};h=h.split('c_fill,w_${SNAP_PHOTO_W},h_${SNAP_PHOTO_W},').join('c_fill,w_'+W+',h_'+W+',');` : ''}
+${page.dog ? `var W=window.__dogPhotoW||${SNAP_PHOTO_W};h=h.split('c_fill,w_${SNAP_PHOTO_W},h_${SNAP_PHOTO_W},').join('c_fill,w_'+W+',h_'+W+',');
+// Tá istá adresa ako predsťahovanie v index.html (\`__cdnU\` = /cdn-cgi/image) — inak sa fotka na ostrom webe sťahovala DVAKRÁT
+// (preload 79 kB cez Cloudflare + snímka 57 kB priamo z Cloudinary, ostrý web 27. 11. 2026: /dog mobil 83).
+if(window.__cdnU)h=window.__cdnU(h);` : ''}
 pre.insertAdjacentHTML('beforeend',h);if(tp.dataset.title)document.title=tp.dataset.title;
 ${page.dog ? `// Karta psa (1080 px) sa škáluje na šírku obalu — snímka mala mierku pre 412 px.
 pre.querySelectorAll('.ds-media').forEach(function(m){var c=m.firstElementChild;if(c)c.style.transform='scale('+(m.clientWidth/1080)+')';});` : ''}
