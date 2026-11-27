@@ -275,11 +275,13 @@ async function render(browser, page, base, fontsCss) {
   for (const t of tpls) {
     const m = t.match(/^<template data-pre="([a-z]+)"/); if (!m) continue;
     const cur = t.slice(t.indexOf('ph cur'), t.indexOf('ph cur') + 1500);
-    heroImg[m[1]] = [...cur.matchAll(/src="(\/[^"]+)"/g)].map((x) => x[1]).filter((u, i, all) => all.indexOf(u) === i).slice(0, 2);
+    // [adresa, srcset, sizes] — snímka karusela má srcset (400/600 px), preload musí vybrať ten istý súbor ako <img>, inak sa stiahne dvakrát.
+    heroImg[m[1]] = [...cur.matchAll(/<img[^>]*? src="(\/[^"]+)"[^>]*>/g)].map((x) => [x[1], (x[0].match(/ srcset="([^"]+)"/) || [])[1] || '', (x[0].match(/ sizes="([^"]+)"/) || [])[1] || ''])
+      .filter((u, i, all) => all.findIndex((y) => y[0] === u[0]) === i).slice(0, 2).filter((u) => !u[1]); // snímky so srcset (karusel) preload nepreberie správne (PageSpeed stiahol 600 px namiesto 400 px) — nájde ich <img>
   }
   const preImg = page.home && Object.keys(heroImg).length
     ? `var L=(localStorage.getItem('dogypt_lang')||(navigator.language||'en')).toLowerCase().slice(0,2),M=${JSON.stringify(heroImg)},I=M[L]||M.en||[];`
-      + `for(var i=0;i<I.length;i++)document.write('<link rel="preload" as="image" fetchpriority="high" href="'+I[i]+'">');`
+      + `for(var i=0;i<I.length;i++)document.write('<link rel="preload" as="image" fetchpriority="high" href="'+I[i][0]+'"'+(I[i][1]?' imagesrcset="'+I[i][1]+'" imagesizes="'+I[i][2]+'"':'')+'>');`
     : '';
   const headLinks = page.onlyPath && linkTags
     ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)}){document.write(${JSON.stringify(linkTags)});try{${preImg}}catch(e){}}</script>`
