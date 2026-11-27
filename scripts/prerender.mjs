@@ -57,7 +57,7 @@ const PAGES = [
   // čakal na 400 kB JS. `/` = dist/index.html, ktorý je ZÁROVEŇ SPA záloha pre každú cestu ⇒ šablóna sa
   // použije len na `/` (onlyPath) a renderuje sa POSLEDNÁ (psy berú snímku z čistého index.html).
   // Do HTML ide len hlavička + hero (prune), zvyšok dokreslí appka.
-  { path: '/', file: 'index.html', ready: '#root .aw .hero h1 .deco', page: '.aw', skipAuth: true, onlyPath: '/', prune: 'main > :not(.hero)', home: true },
+  { path: '/', file: 'index.html', ready: '#root .aw .hero h1 .deco', page: '.aw', skipAuth: true, onlyPath: '/', prune: 'main > :not(.hero)', home: true, waitFonts: true },
 ];
 
 // ── PSY ─────────────────────────────────────────────────────────────────────────────────────
@@ -102,6 +102,9 @@ async function waitForServer() {
 async function snapshot(browser, page, lang, base) {
   const ctx = await browser.newContext({ viewport: { width: 412, height: 823 }, locale: lang === 'en' ? 'en-US' : lang });
   await ctx.addInitScript((l) => { try { localStorage.setItem('dogypt_lang', l); } catch { /* */ } }, lang);
+  // Karusel telefónov na homepage (AppWeb: setInterval 4200 ms) sa v snímke NESMIE posunúť — appka štartuje od prvého telefónu,
+  // snímka s tretím ukazovala iný „cur“ ⇒ po hydratácii nový LCP prvok (mobil LCP ~10 s) a viditeľná výmena telefónu (27. 11. 2026).
+  await ctx.addInitScript(() => { const si = window.setInterval.bind(window); window.setInterval = (f, d, ...a) => (d === 4200 ? 0 : si(f, d, ...a)); });
   const p = await ctx.newPage();
   // Analytika a cudzie skripty do snímky nepatria.
   await p.route(/googletagmanager|posthog|i\.posthog/, (r) => r.abort());
@@ -134,6 +137,9 @@ async function snapshot(browser, page, lang, base) {
     if (!pageEl) return { html: '', styles: '', title: '' };
     let node = pageEl.cloneNode(true);
     if (prune) node.querySelectorAll(prune).forEach((e) => e.remove());
+    // Skryté telefóny karusela (.ph.off, opacity 0) nesmú sťahovať snímky pred štartom appky (27. 11. 2026, mobil LCP):
+    // 4 snímky ~300 kB súťažili s JS o linku. Appka ich po hydratácii vykreslí sama (`src` si dosadí React).
+    node.querySelectorAll('.car .ph.off .scr img').forEach((i) => { i.setAttribute('data-src', i.getAttribute('src') || ''); i.removeAttribute('src'); i.removeAttribute('srcset'); });
     for (let a = pageEl.parentElement; a && a.id !== 'root'; a = a.parentElement) {
       const shell = a.cloneNode(false); shell.appendChild(node); node = shell;
     }

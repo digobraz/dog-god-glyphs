@@ -123,12 +123,19 @@ const SOON: { ic: string }[] = [
 /** Snímka appky v jazyku webu: SK = `<src>.webp`, inak anglická `<src>-en.webp` (11. 11. 2026). */
 const useShot = () => { const { lang } = useLang(); return (src: string) => `${A}/snimky/${src}${lang === 'sk' ? '' : '-en'}.webp`; };
 
-function Phone({ src }: { src: string }) {
+/** Snímky karusela v hero majú aj 400 px verziu `<snímka>-s.webp` (cwebp, 27. 11. 2026): mobil ťahá ~45 % menej pred LCP, PC a Retina berú 600 px.
+ *  Pri novej snímke karusela vyrob `-s` (cwebp -q 80 -resize 400 0), inak by srcset ukazoval na neexistujúci súbor. */
+const SHOT_SMALL = ['app-ainubis-mozog', 'app-mapa-zoznam', 'app-zapis', 'app-prva-pomoc', 'app-mapa', 'app-sos-panel', 'app-ucen'];
+const CAR_SIZES = '(min-width: 900px) 267px, calc((100vw - 32px) * 0.54)';
+
+function Phone({ src, car = false }: { src: string; car?: boolean }) {
   const shot = useShot();
+  const url = shot(src);
+  const small = car && SHOT_SMALL.includes(src) ? url.replace(/\.webp$/, '-s.webp') : '';
   return (
     <div className="phone">
       <img className="fr" src={`${A}/phone.svg`} alt="" />
-      <div className="scr"><img loading="lazy" src={shot(src)} alt="" decoding="async" /></div>
+      <div className="scr"><img loading="lazy" src={url} {...(small ? { srcSet: `${small} 400w, ${url} 600w`, sizes: CAR_SIZES } : {})} alt="" decoding="async" /></div>
     </div>
   );
 }
@@ -147,7 +154,7 @@ function Tilt({ set, src, onOpen, className = '' }: { set: string; src: string; 
   const leave = () => { ref.current?.style.setProperty('--ry', '0deg'); ref.current?.style.setProperty('--rx', '0deg'); };
   return (
     <div className={`tilt ${className}`} onPointerMove={move} onPointerLeave={leave} onClick={onOpen ? () => onOpen(set) : undefined}>
-      <div ref={ref} className="tl"><Phone src={src} /></div>
+      <div ref={ref} className="tl"><Phone src={src} car={/(^| )ph( |$)/.test(className)} /></div>
     </div>
   );
 }
