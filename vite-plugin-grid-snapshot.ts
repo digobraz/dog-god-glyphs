@@ -17,7 +17,17 @@ import path from "path";
 const FEED = "https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs";
 const LQIP_T = "c_fill,w_4,h_4,g_auto,f_bmp";
 
+// 27. 11. 2026: jeden 10 s výpadok feedu zhodil celý go-live (prerender potom nenašiel grid-dogs.json) — 3 pokusy.
 async function getJson(url: string): Promise<unknown[] | null> {
+  for (let k = 0; k < 3; k++) {
+    const j = await getJsonOnce(url);
+    if (j) return j;
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+  return null;
+}
+
+async function getJsonOnce(url: string): Promise<unknown[] | null> {
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!r.ok) return null;
