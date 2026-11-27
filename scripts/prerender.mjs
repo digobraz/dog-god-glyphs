@@ -145,9 +145,24 @@ async function snapshot(browser, page, lang, base) {
     }
     const root = { innerHTML: node.outerHTML };
     // Štýly, ktoré appka vložila do <head> (CSS v JS literáloch); tie z index.html tam už sú.
+    // Globálne štýly appky (papyrus3d ~143 kB: /pack, mapa, dlaždice…) do snímky nepatria celé — HTML homepage by niesol ~20 kB gzip
+    // navyše pred prvým vykreslením (PageSpeed mobil, 27. 11. 2026). Ostane pravidlo, ktorého selektor sedí na prvok snímky alebo
+    // na <html>/<body>; @font-face, @keyframes a @property ostávajú vždy. Pseudo-triedy a pseudo-prvky sa pri teste odrežú.
+    const matchesPre = (sel) => {
+      const base = sel.replace(/::?[a-zA-Z-]+(\([^)]*\))?/g, '').trim() || '*';
+      try { return !!(node.querySelector(base) || node.matches(base) || document.documentElement.matches(base) || document.body.matches(base)); } catch { return true; }
+    };
+    const keep = (rules) => [...rules].map((r) => {
+      if (r.type === 1) return r.selectorText.split(',').some((x) => matchesPre(x)) ? r.cssText : '';
+      if (r.cssRules && (r.type === 4 || r.type === 12)) { const inner = keep(r.cssRules).join(''); return inner ? `@${r.type === 4 ? 'media' : 'supports'} ${r.conditionText || r.media?.mediaText} {${inner}}` : ''; }
+      return r.cssText;
+    });
     const styles = [...document.head.querySelectorAll('style')]
       .filter((s) => !base.includes(s.textContent || '\u0000'))
-      .map((s) => s.outerHTML).join('');
+      .map((s) => {
+        if (!s.sheet || (s.textContent || '').length < 4000) return s.outerHTML;
+        try { return `<style${s.id ? ` id="${s.id}"` : ''}>${keep(s.sheet.cssRules).join('')}</style>`; } catch { return s.outerHTML; }
+      }).join('');
     // Súbory štýlov, ktoré si stránka stiahla sama (lazy chunk, napr. appWeb-*.css) — bez nich je hotové HTML
     // nenaštýlované a pri výmene skočí (homepage 23. 11.: CLS 0,5, LCP sa ráta až z appky).
     const links = [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute('href') || '')
