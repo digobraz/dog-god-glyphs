@@ -947,7 +947,7 @@ export default function AppWeb() {
               </div>
             )}
             {pick === 0
-              ? <a className="pk-cta" href="#">{c('give')}</a>
+              ? <a className="pk-cta" href={START}>{c('give')}</a>
               : RANK_OF_CARD[pick] === rankNow && !(pick === 4 && fKind === 'once')
                 ? <p className="cit-mine pk-stage">{c('pay_mine')}</p>
                 : (

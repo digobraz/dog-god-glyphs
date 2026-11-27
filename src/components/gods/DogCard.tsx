@@ -153,7 +153,7 @@ export function DogCardBody({ dog, where, edgeBase, anonKey }: Props) {
             <Sparkles className="pp-life-spark" aria-hidden />
             {t('pack.dog.livingBestLife')}
           </span>
-          <span className="pp-days">{t('dogPage.daysCount', { days: days.toLocaleString('en-US') })}</span>
+          <span className="pp-days">{t('dogPage.daysCount', { days: days.toLocaleString() })}</span>
         </div>
       )}
       <div className="pp-rule" />

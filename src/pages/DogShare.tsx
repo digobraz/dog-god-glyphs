@@ -401,7 +401,7 @@ export default function DogShare() {
                 <div className="ds-grid">
                   <div className="ds-fact" style={PACK_BOX.subblock}>
                     <i>{isDeceased ? t('dogPage.livedBestLife') : t('pack.dog.livingBestLife')}</i>
-                    <b>{age ? t('dogPage.daysCount', { days: age.totalDays.toLocaleString('en-US') }) : '—'}</b>
+                    <b>{age ? t('dogPage.daysCount', { days: age.totalDays.toLocaleString() }) : '—'}</b>
                   </div>
                   <div className="ds-fact" style={PACK_BOX.subblock}>
                     <i>{t('dogPage.statusLbl')}</i>
