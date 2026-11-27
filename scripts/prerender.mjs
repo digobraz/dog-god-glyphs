@@ -197,7 +197,10 @@ ${page.dog ? `// Stránka psa: LCP je fotka — JS až keď je stiahnutá (index
 var go=0;function st(){if(go)return;go=1;start();}
 try{var u=null;[].some.call(pre.querySelectorAll('.ds-media [style*="background-image"]'),function(e){u=e.style.backgroundImage.match(/url\\(["']?(https?:[^"')]+)/);return !!u;});
 if(u){var im=new Image();im.onload=im.onerror=function(){requestAnimationFrame(function(){requestAnimationFrame(st);});};im.src=u[1];}else st();}catch(e){st();}
-setTimeout(st,1500);}` : `requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}`}
+setTimeout(st,1500);}` : `${page.home ? `// Homepage (27. 11. 2026, mobil 61 -> 68): JS štartuje po 1 s, nie hneď - PageSpeed (Lantern) do FCP zarátava všetko, čo sa začalo sťahovať pred ním. Ťuk / klávesa spustí appku okamžite.
+var gs=0;function hs(){if(gs)return;gs=1;start();}
+['pointerdown','keydown','touchstart'].forEach(function(t){addEventListener(t,hs,{once:true,passive:true});});
+requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(hs,1000);});});}` : `requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(start,0);});});}`}`}
 ${page.waitFonts ? `try{pre.offsetHeight;document.fonts.ready.then(show);}catch(e){show();}
 setTimeout(show,800);` : 'show();'}
 var root=document.getElementById('root'),sel=${JSON.stringify(page.ready)};
