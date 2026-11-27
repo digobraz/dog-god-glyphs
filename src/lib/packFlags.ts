@@ -117,8 +117,9 @@ export const DEV_FULL = true;
 // *„ak to je ok funkčné a otestované tak pre všetkých v apke"*. V natívnej appke (`IS_APP`) ho má KAŽDÝ člen
 // (K4 autor/dielo/odchod na LIVE 31. 10., `scripts/live/pawmate-k4-2026-10-31.sh`); web dogypt.com ostáva
 // len zakladateľom. (Ráno 31. 10. tu stálo opačné rozhodnutie auditu „v appke skryť" — zrušené.)
-export const PAWMATE_LIVE =
-  IS_APP || import.meta.env.VITE_PAWMATE === 'true' || isFullPackEmail(sessionEmailFromStorage());
+// 🟢 27. 11. 2026 — B8 aj pre WEB: od FLIPu je web tá istá appka (APP_NEW) a karta Kazateľa PAWMATE sľubuje
+// (Matej 27. 11.: *„všetko oprav … nech všetko funguje“*). Výnimka pre zakladateľov tým zaniká.
+export const PAWMATE_LIVE: boolean = true;
 
 // ── PODUJATIA — DVERE ZAMKNUTÉ, KÝM NA LIVE NIE JE SCHÉMA (2026-09-15) ──────
 // 🟢 STAV K 5. 10. 2026: FRONTEND JE HOTOVÝ A ČÍTA AJ PÍŠE DB (vlna 2, 24.–25. 9., commit
@@ -224,7 +225,7 @@ export const AINUBIS_FULL: boolean = true;
 // ── LIMITY PODĽA HODNOSTI (22. 11. 2026) ─────────────────────────────────────────
 // Matej: *„poslom 3, staviteľom 5, vezírom 10“* (fotky v zápise dňa). Hodnosti platia až s FLIPom — dovtedy limity
 // beží len testovacia appka a všetci inde majú to, čo doteraz (1 fotka). FLIP: prepni na `true`.
-export const RANK_LIMITS_ON: boolean = TEST_BUILD && !IS_APP; // natívna appka 1.0 = bez rozdielu podľa hodnosti (Apple 3.1.3b), aj testovací kanál, 24. 11. 2026
+export const RANK_LIMITS_ON: boolean = !IS_APP; // 27. 11. 2026: FLIP prebehol 23. 11., na webe zapnuté (Matej „všetko oprav“); predtým TEST_BUILD && !IS_APP · natívna appka 1.0 = bez rozdielu podľa hodnosti (Apple 3.1.3b), aj testovací kanál, 24. 11. 2026
 
 // ── PREHRÁVAČ PODCASTOV (22. 11. 2026) ───────────────────────────────────────────────────────────
 // Jeden prehrávač pre celú appku (mini nad navom, celá obrazovka, zamknutá obrazovka) — `vault/PodPlayer.tsx`.

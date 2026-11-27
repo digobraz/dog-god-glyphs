@@ -355,7 +355,7 @@ function DogTrail({ goal }: { goal: string }) {
 const START = '/heroglyph/name';
 
 /** Živá planétka z `/` — montuje sa až pri obrazovke a mimo nej stojí. */
-function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; hall: string; back: string; center: string } }) {
+function LivePlanet({ v2, soon }: { v2?: { enter: string; href: string; find: string; hall: string; back: string; center: string }; soon?: string }) {
   const [mountRef, near] = useNear<HTMLDivElement>('1500px');
   const [visRef, vis] = useNear<HTMLElement>('0px', false);
   return (
@@ -368,7 +368,7 @@ function LivePlanet({ v2 }: { v2?: { enter: string; href: string; find: string; 
         <style>{`.aw .planet-live .planet-root.pop{display:flex;position:fixed;inset:0;z-index:80;padding:0;animation:none;align-items:center;justify-content:center}.aw .planet-live .planet-root.pop{transform-style:preserve-3d}.aw .planet-live .planet-root.pop .pp-panel{z-index:20;translate:0 0 2000px}.aw .planet-live .planet-root .planet-stage{z-index:1}`}</style>
         {near && <Suspense fallback={null}><GodsGridLab embedded paused={!vis} planetAnywhere v2={v2} /></Suspense>}
         {/* odkazy do obchodov sa presťahovali z bloku POTREBUJEME ŤA sem, vľavo dole (Matej 6. 11.) */}
-        <div className="planet-stores"><Stores /></div>
+        <div className="planet-stores"><Stores soon={soon} /></div>
       </section>
     </div>
   );
@@ -1007,7 +1007,7 @@ export default function AppWeb() {
 
       {/* 11 · ŽIVÁ PLANÉTKA — finále */}
       {V2 && (giftOn || gift.thanks || gift.canceled) && <GiftSheet c={c} thanks={gift.thanks} canceled={gift.canceled} onClose={() => { setGiftOn(false); gift.close(); }} />}
-      <LivePlanet v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back'), center: c('pl_center') } : undefined} />
+      <LivePlanet soon={c('soon')} v2={V2 ? { enter: c('start'), href: START, find: c('pl_find'), hall: c('pl_hall'), back: c('pl_back'), center: c('pl_center') } : undefined} />
       </main>
 
 
