@@ -175,6 +175,11 @@ async function snapshot(browser, page, lang, base) {
   return out;
 }
 
+// Homepage ide aj na `/app` (AppWeb ho po štarte presmeruje na `/`) — rovnaké hotové HTML (27. 11. 2026, mobil). Ostatné stránky len na svojej ceste.
+const onlyTest = (page, neg) => page.home
+  ? `${neg}/^\\/(app)?\\/?$/.test(location.pathname)`
+  : `location.pathname${neg ? '!==' : '==='}${JSON.stringify(page.onlyPath)}`;
+
 // Výberový skript — beží synchrónne hneď za #pre, pred prvým vykreslením.
 const pickScript = (page) => `<script>(function(){
 var start=function(){if(window.__startApp)window.__startApp();};
@@ -182,7 +187,7 @@ var pre=document.getElementById('pre');if(!pre)return start();
 function drop(){pre.remove();document.documentElement.classList.remove('pre','pre-wait');}
 function skip(){drop();start();}
 try{
-${page.onlyPath ? `if(location.pathname!==${JSON.stringify(page.onlyPath)})return skip();` : ''}
+${page.onlyPath ? `if(${onlyTest(page,'!')})return skip();` : ''}
 ${page.skipAuth ? `if(/access_token|refresh_token|token_hash|[?&#]code=|error_description|dogId=/.test(location.hash+location.search))return skip();
 for(var i=0;i<localStorage.length;i++){if(/^sb-.*-auth-token$/.test(localStorage.key(i)))return skip();}` : ''}
 var lang=localStorage.getItem('dogypt_lang');
@@ -216,8 +221,10 @@ var shown=0;function show(){if(shown)return;shown=1;document.documentElement.cla
 // Dva snímky: v prvom sa text len odkryje, JS ide až keď je naozaj vykreslený (inak ho PageSpeed ráta do LCP).
 ${page.dog ? `// Stránka psa: LCP je fotka — JS až keď je stiahnutá (index.html ju predsťahuje), strop 1,5 s.
 var go=0;function st(){if(go)return;go=1;start();}
+// 27. 11. 2026 (mobil 73 -> ?): JS až ~1 s po vykreslení fotky (Lantern zarátava do LCP všetko, čo sa začalo sťahovať skôr); ťuk / klávesa ho spustí hneď.
+['pointerdown','keydown','touchstart'].forEach(function(t){addEventListener(t,st,{once:true,passive:true});});
 try{var u=null;[].some.call(pre.querySelectorAll('.ds-media [style*="background-image"]'),function(e){u=e.style.backgroundImage.match(/url\\(["']?(https?:[^"')]+)/);return !!u;});
-if(u){var im=new Image();im.onload=im.onerror=function(){requestAnimationFrame(function(){requestAnimationFrame(st);});};im.src=u[1];}else st();}catch(e){st();}
+if(u){var im=new Image();im.onload=im.onerror=function(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(st,1000);});});};im.src=u[1];}else st();}catch(e){st();}
 setTimeout(st,1500);}` : `${page.home ? `// Homepage (27. 11. 2026, mobil 61 -> 68): JS štartuje po 1 s, nie hneď - PageSpeed (Lantern) do FCP zarátava všetko, čo sa začalo sťahovať pred ním. Ťuk / klávesa spustí appku okamžite.
 var gs=0;function hs(){if(gs)return;gs=1;start();}
 ['pointerdown','keydown','touchstart'].forEach(function(t){addEventListener(t,hs,{once:true,passive:true});});
@@ -299,7 +306,7 @@ async function render(browser, page, base, fontsCss) {
       + `for(var i=0;i<I.length;i++)document.write('<link rel="preload" as="image" fetchpriority="high" href="'+I[i][0]+'"'+(I[i][1]?' imagesrcset="'+I[i][1]+'" imagesizes="'+I[i][2]+'"':'')+'>');`
     : '';
   const headLinks = page.onlyPath && linkTags
-    ? `<script>if(location.pathname===${JSON.stringify(page.onlyPath)}){document.write(${JSON.stringify(linkTags)});try{${preImg}}catch(e){}}</script>`
+    ? `<script>if(${onlyTest(page,'')}){document.write(${JSON.stringify(linkTags)});try{${preImg}}catch(e){}}</script>`
     : '';
   // Za <meta charset>, nie hneď za <head> — charset musí byť v prvom 1 kB (PageSpeed Best practices, 23. 11. 2026).
   const headAt = /<meta charset="[^"]*"\s*\/?>/i.exec(base);
